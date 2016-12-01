@@ -9,7 +9,6 @@
 # EXCLUDE_FILE should have one line for each subdirectory (absolute path) that 
 # should be excluded
 
-
 programname=$0
 
 while [[ $# -gt 0 ]]
@@ -37,6 +36,9 @@ case $key in
     QUEUE="$2"
     shift
     ;;
+    --dryrun)
+    DRYRUN=YES
+    ;;
     *)
     echo "Unknown option"
     ;;
@@ -48,11 +50,11 @@ SOURCE_DIR="${SOURCE_DIR:-/cbnt/cbimageX/HCS}"
 
 DEST_DIR="${DEST_DIR:-/imaging/cold/cbnt_cbimageX_backup}"
 
-SUB_DIR="${SUB_DIR:-xiaoyunwu}"
-
 EXCLUDE_FILE="${EXCLUDE_FILE:-UNSPECIFIED}"
 
 QUEUE="${QUEUE:-short}"
+
+DRYRUN="${DRYRUN:-NO}"
 
 dir_list=`find ${SOURCE_DIR}/$SUB_DIR -maxdepth 1 -mindepth 1 -type d`
 
@@ -72,6 +74,18 @@ do
 	
 	file=`basename $dir`
 
-	qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/${SUB_DIR}/x${file}.log -N x${file} -j y -b y -V "tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${SUB_DIR}/${file}.tar.gz"
+	QSUB="qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/${SUB_DIR}/x${file}.log -N x${file} -j y -b y -V"
+
+	CMD="tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${SUB_DIR}/${file}.tar.gz"
+
+	if [ "$DRYRUN" == "YES" ]
+	then
+	    echo "Dry run"
+	    echo $QSUB $CMD
+
+	else
+	    echo $QSUB $CMD
+
+	fi
 done
 
