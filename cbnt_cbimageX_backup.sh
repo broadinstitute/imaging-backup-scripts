@@ -72,6 +72,6 @@ do
 	
 	file=`basename $dir`
 
-	echo qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/${SUB_DIR}/x${file}.log -N x${file} -j y -b y -V "tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${SUB_DIR}/${file}.tar.gz"
+	qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/${SUB_DIR}/x${file}.log -N x${file} -j y -b y -V "tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${SUB_DIR}/${file}.tar.gz"
 done
 
