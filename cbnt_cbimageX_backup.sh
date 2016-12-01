@@ -1,9 +1,14 @@
 #!/bin/bash
 
 # Script to create zipped tarballs 
+
 # Use long queue if any SUB_DIRectory is likely to take longer than 2 hours
 # short: 2 hour limit (as of 2016/11).
 # long: No time limit (as of 2016/11)
+
+# EXCLUDE_FILE should have one line for each subdirectory (absolute path) that 
+# should be excluded
+
 
 programname=$0
 
