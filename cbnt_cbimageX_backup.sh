@@ -1,9 +1,12 @@
+# Script to create zipped tarballs 
+# Use long queue if any subdirectory is likely to take longer than 2 hours
+
 source_dir=/cbnt/cbimageX/HCS
 destination_dir=/imaging/cold/cbnt_cbimageX_backup
 subdir=xiaoyunwu
 dir_list=`find ${source_dir}/$subdir -maxdepth 1 -mindepth 1 -type d`
 mkdir -p ${destination_dir}/${subdir}
-# 2 hour limit (as of 2016/11)
+# 2 hour limit (as of 2016/11).
 QUEUE=short
 # No time limit (as of 2016/11)
 #QUEUE=long
