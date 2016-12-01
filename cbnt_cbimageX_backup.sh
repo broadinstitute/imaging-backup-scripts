@@ -1,7 +1,12 @@
-dir_list=`find /cbnt/cbimageX/HCS/xiaoyunwu/ -maxdepth 1 -mindepth 1 -type d`
+source_dir=/cbnt/cbimageX/HCS
+destination_dir=/imaging/cold/cbnt_cbimageX_backup
+subdir=xiaoyunwu
+dir_list=`find ${source_dir}/$subdir -maxdepth 1 -mindepth 1 -type d`
+mkdir -p ${destination_dir}/${subdir}
 
-for dir in $dirlist;
+for dir in $dir_list;
 do
-	echo tar cvf - ${dir} | gzip > ${dir}.tar.gz
+    file=`basename $dir`
+    qsub -cwd -o ${destination_dir}/${subdir}/${file}.log  -j y -b y -V "tar cvf - ${dir} | gzip --fast > ${destination_dir}/${subdir}/${file}.tar.gz"
 done
 
