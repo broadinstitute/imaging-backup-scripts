@@ -1,27 +1,72 @@
+#!/bin/bash
+
 # Script to create zipped tarballs 
-# Use long queue if any subdirectory is likely to take longer than 2 hours
+# Use long queue if any SUB_DIRectory is likely to take longer than 2 hours
+# short: 2 hour limit (as of 2016/11).
+# long: No time limit (as of 2016/11)
 
-source_dir=/cbnt/cbimageX/HCS
-destination_dir=/imaging/cold/cbnt_cbimageX_backup
-subdir=xiaoyunwu
-dir_list=`find ${source_dir}/$subdir -maxdepth 1 -mindepth 1 -type d`
-mkdir -p ${destination_dir}/${subdir}
+programname=$0
 
-# 2 hour limit (as of 2016/11).
-QUEUE=short
-# No time limit (as of 2016/11)
-#QUEUE=long
+while [[ $# -gt 0 ]]
+do
+key="$1"
 
-EXCLUDE_FILE=exclude.txt
+case $key in
+    --source_dir)
+    SOURCE_DIR="$2"
+    shift
+    ;;
+    --dest_dir)
+    DEST_DIR="$2"
+    shift
+    ;;
+    --sub_dir)
+    SUB_DIR="$2"
+    shift
+    ;;
+    --exclude)
+    EXCLUDE_FILE="$2"
+    shift
+    ;;
+    --queue)
+    QUEUE="$2"
+    shift
+    ;;
+    *)
+    echo "Unknown option"
+    ;;
+esac
+shift
+done
+
+SOURCE_DIR="${SOURCE_DIR:-/cbnt/cbimageX/HCS}"
+
+DEST_DIR="${DEST_DIR:-/imaging/cold/cbnt_cbimageX_backup}"
+
+SUB_DIR="${SUB_DIR:-xiaoyunwu}"
+
+EXCLUDE_FILE="${EXCLUDE_FILE:-UNSPECIFIED}"
+
+QUEUE="${EXCLUDE_FILE:-short}"
+
+dir_list=`find ${SOURCE_DIR}/$SUB_DIR -maxdepth 1 -mindepth 1 -type d`
+
+mkdir -p ${DEST_DIR}/${SUB_DIR}
 
 for dir in $dir_list;
 do
-    if `grep -Fxq $dir $EXCLUDE_FILE`
-    then
-	echo Skipping $dir
-    else
+	if [ "$EXCLUDE_FILE" == "UNSPECIFIED" ]
+	    if $EXCLUDE_FILE -eq UNSPECIFIED & `grep -Fxq $dir $EXCLUDE_FILE`
+    	then    
+			echo Skipping $dir
+
+			continue
+		fi
+	fi
+
 	file=`basename $dir`
-	echo qsub -q ${QUEUE} -cwd -o ${destination_dir}/${subdir}/x${file}.log -N x${file} -j y -b y -V "tar cvf - ${dir} | gzip --fast > ${destination_dir}/${subdir}/${file}.tar.gz"
-    fi
+
+	echo qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/${SUB_DIR}/x${file}.log -N x${file} -j y -b y -V "tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${SUB_DIR}/${file}.tar.gz"
+
 done
 
