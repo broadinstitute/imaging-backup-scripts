@@ -7,6 +7,6 @@ mkdir -p ${destination_dir}/${subdir}
 for dir in $dir_list;
 do
     file=`basename $dir`
-    echo qsub -cwd -o ${destination_dir}/${subdir}/x${file}.log -N x${file} -j y -b y -V "tar cvf - ${dir} | gzip --fast > ${destination_dir}/${subdir}/${file}.tar.gz"
+    qsub -cwd -o ${destination_dir}/${subdir}/x${file}.log -N x${file} -j y -b y -V "tar cvf - ${dir} | gzip --fast > ${destination_dir}/${subdir}/${file}.tar.gz"
 done
 
