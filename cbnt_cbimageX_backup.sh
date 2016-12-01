@@ -47,7 +47,7 @@ SUB_DIR="${SUB_DIR:-xiaoyunwu}"
 
 EXCLUDE_FILE="${EXCLUDE_FILE:-UNSPECIFIED}"
 
-QUEUE="${EXCLUDE_FILE:-short}"
+QUEUE="${QUEUE:-short}"
 
 dir_list=`find ${SOURCE_DIR}/$SUB_DIR -maxdepth 1 -mindepth 1 -type d`
 
@@ -55,18 +55,18 @@ mkdir -p ${DEST_DIR}/${SUB_DIR}
 
 for dir in $dir_list;
 do
-	if [ "$EXCLUDE_FILE" == "UNSPECIFIED" ]
-	    if $EXCLUDE_FILE -eq UNSPECIFIED & `grep -Fxq $dir $EXCLUDE_FILE`
-    	then    
-			echo Skipping $dir
-
-			continue
-		fi
+	if [ "$EXCLUDE_FILE" != "UNSPECIFIED" ]
+	then
+	    if `grep -Fxq $dir $EXCLUDE_FILE`
+    	    then    
+		echo Skipping $dir
+		
+		continue
+	    fi
 	fi
-
+	
 	file=`basename $dir`
 
 	echo qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/${SUB_DIR}/x${file}.log -N x${file} -j y -b y -V "tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${SUB_DIR}/${file}.tar.gz"
-
 done
 
