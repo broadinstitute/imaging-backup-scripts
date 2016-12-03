@@ -76,7 +76,7 @@ do
 
     QSUB="qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/${SUB_DIR}/x${file}.log -N x${file} -j y -b y -V"
 
-    CMD="'tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${SUB_DIR}/${file}.tar.gz'"
+    CMD="tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${SUB_DIR}/${file}.tar.gz"
 
     if [ "$DRYRUN" == "YES" ]
     then
