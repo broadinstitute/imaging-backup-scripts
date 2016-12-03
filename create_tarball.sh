@@ -62,30 +62,29 @@ mkdir -p ${DEST_DIR}/${SUB_DIR}
 
 for dir in $dir_list;
 do
-	if [ "$EXCLUDE_FILE" != "UNSPECIFIED" ]
-	then
-	    if `grep -Fxq $dir $EXCLUDE_FILE`
-    	    then    
-		echo Skipping $dir
-		
-		continue
-	    fi
-	fi
-	
-	file=`basename $dir`
+    if [ "$EXCLUDE_FILE" != "UNSPECIFIED" ]
+    then
+        if `grep -Fxq $dir $EXCLUDE_FILE`
+        then    
+            echo Skipping $dir
+        
+            continue
+        fi
+    fi
+    
+    file=`basename $dir`
 
-	QSUB="qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/${SUB_DIR}/x${file}.log -N x${file} -j y -b y -V"
+    QSUB="qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/${SUB_DIR}/x${file}.log -N x${file} -j y -b y -V"
 
-	CMD="tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${SUB_DIR}/${file}.tar.gz"
+    CMD="tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${SUB_DIR}/${file}.tar.gz"
 
-	if [ "$DRYRUN" == "YES" ]
-	then
-	    echo "Dry run"
-	    echo $QSUB $CMD
+    if [ "$DRYRUN" == "YES" ]
+    then
+        echo $QSUB $CMD
 
-	else
-	    echo $QSUB $CMD
+    else
+        $QSUB $CMD
 
-	fi
+    fi
 done
 
