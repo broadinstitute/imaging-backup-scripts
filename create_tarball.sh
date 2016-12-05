@@ -6,8 +6,12 @@
 # short: 2 hour limit (as of 2016/11).
 # long: No time limit (as of 2016/11)
 
-# EXCLUDE_FILE should have one line for each subdirectory (absolute path) that 
+# The file EXCLUDE_LIST should have one line for each subdirectory (absolute path) that 
 # should be excluded
+
+function FORMAT_DIR_NAME() {
+    echo $1|sed 's,/\+,/,g'|sed 's,/$,,g'
+}
 
 programname=$0
 
@@ -29,7 +33,7 @@ case $key in
     shift
     ;;
     --exclude)
-    EXCLUDE_FILE="$2"
+    EXCLUDE_LIST="$2"
     shift
     ;;
     --queue)
@@ -50,21 +54,27 @@ SOURCE_DIR="${SOURCE_DIR:-/cbnt/cbimageX/HCS}"
 
 DEST_DIR="${DEST_DIR:-/imaging/cold/cbnt_cbimageX_backup}"
 
-EXCLUDE_FILE="${EXCLUDE_FILE:-UNSPECIFIED}"
+EXCLUDE_LIST="${EXCLUDE_LIST:-UNSPECIFIED}"
 
 QUEUE="${QUEUE:-short}"
 
 DRYRUN="${DRYRUN:-NO}"
 
-dir_list=`find ${SOURCE_DIR}/$SUB_DIR -maxdepth 1 -mindepth 1 -type d`
+DEST_DIR=`FORMAT_DIR_NAME $DEST_DIR/$SUB_DIR`
 
-mkdir -p ${DEST_DIR}/${SUB_DIR}
+SOURCE_DIR=`FORMAT_DIR_NAME $SOURCE_DIR/$SUB_DIR`
+
+dir_list=`find ${SOURCE_DIR} -maxdepth 1 -mindepth 1 -type d`
+
+mkdir -p ${DEST_DIR}
 
 for dir in $dir_list;
 do
-    if [ "$EXCLUDE_FILE" != "UNSPECIFIED" ]
+    dir=`FORMAT_DIR_NAME $dir`
+
+    if [ "$EXCLUDE_LIST" != "UNSPECIFIED" ]
     then
-        if `grep -Fxq $dir $EXCLUDE_FILE`
+        if `grep -Fq $dir $EXCLUDE_LIST`
         then    
             echo Skipping $dir
         
@@ -74,9 +84,9 @@ do
     
     file=`basename $dir`
 
-    QSUB="qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/${SUB_DIR}/x${file}.log -N x${file} -j y -b y -V"
+    QSUB="qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/x${file}.log -N x${file} -j y -b y -V"
 
-    CMD="tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${SUB_DIR}/${file}.tar.gz"
+    CMD="tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${file}.tar.gz"
 
     if [ "$DRYRUN" == "YES" ]
     then
