@@ -84,7 +84,7 @@ do
     
     file=`basename $dir`
 
-    QSUB="qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/x${file}.log -N x${file} -j y -b y -V"
+    QSUB="qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/x${file}.stdout -e ${DEST_DIR}/x${file}.stderr -N x${file} -b y -V"
 
     CMD="tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${file}.tar.gz"
 
