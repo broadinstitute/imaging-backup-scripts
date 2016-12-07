@@ -13,6 +13,10 @@ function FORMAT_DIR_NAME() {
     echo $1|sed 's,/\+,/,g'|sed 's,/$,,g'
 }
 
+function FORMAT_FILE_NAME() {
+    echo $1|sed 's, \+,_,g'
+}
+
 programname=$0
 
 while [[ $# -gt 0 ]]
@@ -71,9 +75,9 @@ mkdir -p ${DEST_DIR}
 for dir in ${SOURCE_DIR}/*; do
     [ -d "${dir}" ] || continue
 
-    #dir="$(basename "${path}")"
+    dir=`FORMAT_DIR_NAME "${dir}"`
 
-    dir=`FORMAT_DIR_NAME $dir`
+    echo Handling "${dir}"
 
     if [ "$EXCLUDE_LIST" != "UNSPECIFIED" ]
     then
@@ -87,9 +91,11 @@ for dir in ${SOURCE_DIR}/*; do
     
     file=`basename "${dir}"`
 
+    file=`FORMAT_FILE_NAME "${file}"`
+
     QSUB="qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/x${file}.stdout -e ${DEST_DIR}/x${file}.stderr -N x${file} -b y -V"
 
-    CMD="tar cvf - ${dir} | gzip --fast > ${DEST_DIR}/${file}.tar.gz"
+    CMD="tar cvf - \"${dir}\" | gzip --fast > ${DEST_DIR}/${file}.tar.gz"
 
     if [ "$DRYRUN" == "YES" ]
     then
