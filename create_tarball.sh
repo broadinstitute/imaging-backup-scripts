@@ -95,7 +95,20 @@ for dir in ${SOURCE_DIR}/*; do
 
     QSUB="qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/x${file}.stdout -e ${DEST_DIR}/x${file}.stderr -N x${file} -b y -V"
 
-    CMD="tar cvf - \"${dir}\" | gzip --fast > ${DEST_DIR}/${file}.tar.gz"
+    TARGZ_FILE=${DEST_DIR}/${file}.tar.gz
+
+    CMD_TARGZ="tar cvf - \"${dir}\" | gzip --fast > $TARGZ_FILE"
+
+    CMD_MD5="md5sum ${DEST_DIR}/${file}.tar.gz > $TARGZ_FILE"
+
+    if [[ -f $TARGZ_FILE ]]; then
+	echo $TARGZ_FILE exists. Only creating md5.
+
+	CMD="$CMD_MD5"
+    else
+	CMD="$CMD_TARGZ; $CMD_MD5"
+
+    fi
 
     if [ "$DRYRUN" == "YES" ]
     then
