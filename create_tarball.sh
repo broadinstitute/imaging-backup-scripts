@@ -64,25 +64,28 @@ DEST_DIR=`FORMAT_DIR_NAME $DEST_DIR/$SUB_DIR`
 
 SOURCE_DIR=`FORMAT_DIR_NAME $SOURCE_DIR/$SUB_DIR`
 
-dir_list=`find ${SOURCE_DIR} -maxdepth 1 -mindepth 1 -type d`
+#dir_list=`find ${SOURCE_DIR} -maxdepth 1 -mindepth 1 -type d`
 
 mkdir -p ${DEST_DIR}
 
-for dir in $dir_list;
-do
+for dir in ${SOURCE_DIR}/*; do
+    [ -d "${dir}" ] || continue
+
+    #dir="$(basename "${path}")"
+
     dir=`FORMAT_DIR_NAME $dir`
 
     if [ "$EXCLUDE_LIST" != "UNSPECIFIED" ]
     then
-        if `grep -Fq $dir $EXCLUDE_LIST`
+        if `grep -Fq "${dir}" $EXCLUDE_LIST`
         then    
-            echo Skipping $dir
+            echo Skipping "${dir}"
         
             continue
         fi
     fi
     
-    file=`basename $dir`
+    file=`basename "${dir}"`
 
     QSUB="qsub -q ${QUEUE} -cwd -o ${DEST_DIR}/x${file}.stdout -e ${DEST_DIR}/x${file}.stderr -N x${file} -b y -V"
 
