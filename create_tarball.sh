@@ -101,7 +101,9 @@ for dir in ${SOURCE_DIR}/*; do
 
     CMD_TARGZ="tar cvf - \"${dir}\" | gzip --fast > $TARGZ_FILE"
 
-    CMD_MD5="md5sum ${DEST_DIR}/${file}.tar.gz > $MD5_FILE"
+    CMD_MD5="tar -xOzf  ${DEST_DIR}/${file}.tar.gz | md5sum > $MD5_FILE"
+
+    #CMD_MD5="md5sum ${DEST_DIR}/${file}.tar.gz > $MD5_FILE"
 
     if [[ -f $TARGZ_FILE ]]; then
 	echo $TARGZ_FILE exists. Only creating md5.
