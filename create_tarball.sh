@@ -2,7 +2,7 @@
 
 # Script to create zipped tarballs 
 
-# Use long queue if any SUB_DIRectory is likely to take longer than 2 hours
+# Use long queue if any subdirectory is likely to take longer than 2 hours
 # short: 2 hour limit (as of 2016/11).
 # long: No time limit (as of 2016/11)
 
