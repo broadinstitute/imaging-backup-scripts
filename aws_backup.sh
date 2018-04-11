@@ -45,7 +45,7 @@ PLATE_ID=BR00092655
 COLD_BUCKET=imaging-platform-cold
 
 S3_PREFIX=s3://${BUCKET}/projects/${PROJECT_NAME}
-S3_COLD_PREFIX=s3://${COLD_BUCKET}/imaging_analysis/${PROJECT_NAME}/plates/
+S3_COLD_PREFIX=s3://${COLD_BUCKET}/imaging_analysis/${PROJECT_NAME}/plates
 PLATE_ARCHIVE_TAG=${PROJECT_NAME}_${BATCH_ID}_${PLATE_ID}
 
 # report sizes
@@ -84,10 +84,11 @@ cd ../../
 
 tar -czf ${PLATE_ARCHIVE_TAG} ${PLATE_ARCHIVE_TAG}.tar.gz
 
-tar -xOzf ${PLATE_ARCHIVE_TAG}.tar.gz | md5sum > ${PLATE_ARCHIVE_TAG}.md5
+md5sum ${PLATE_ARCHIVE_TAG}.tar.gz > ${PLATE_ARCHIVE_TAG}.md5
 
+aws s3 cp ${PLATE_ARCHIVE_TAG}.tar.gz ${S3_COLD_PREFIX}/${PLATE_ARCHIVE_TAG}.tar.gz
 
-aws s3 sync ${PLATE_ARCHIVE_TAG}.tar.gz ${S3_COLD_PREFIX}
+aws s3 cp ${PLATE_ARCHIVE_TAG}.md5 ${S3_COLD_PREFIX}/${PLATE_ARCHIVE_TAG}.md5
 
-rm -rf ${PLATE_ARCHIVE_TAG} ${PLATE_ARCHIVE_TAG}.tar.gz
+rm -rf ${PLATE_ARCHIVE_TAG} ${PLATE_ARCHIVE_TAG}.tar.gz ${PLATE_ARCHIVE_TAG}.md5
 
