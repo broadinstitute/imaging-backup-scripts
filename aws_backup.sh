@@ -46,7 +46,7 @@ COLD_BUCKET=imaging-platform-cold
 
 S3_PREFIX=s3://${BUCKET}/projects/${PROJECT_NAME}
 S3_COLD_PREFIX=s3://${COLD_BUCKET}/imaging_analysis/${PROJECT_NAME}/plates/
-PLATE_ARCHIVE_DIR=${PROJECT_NAME}_${BATCH_ID}_${PLATE_ID}
+PLATE_ARCHIVE_TAG=${PROJECT_NAME}_${BATCH_ID}_${PLATE_ID}
 
 # report sizes
 # s3cmd du "${S3_PREFIX}/${BATCH_ID}/images/${PLATE_ID_FULL}"
@@ -58,9 +58,9 @@ PLATE_ARCHIVE_DIR=${PROJECT_NAME}_${BATCH_ID}_${PLATE_ID}
 
 cd /tmp
 
-mkdir ${PLATE_ARCHIVE_DIR}
+mkdir ${PLATE_ARCHIVE_TAG}
 
-cd ${PLATE_ARCHIVE_DIR}
+cd ${PLATE_ARCHIVE_TAG}
 
 # create subdirectories 
 
@@ -82,13 +82,12 @@ aws s3 sync "${S3_PREFIX}/workspace/backend/${BATCH_ID}/${PLATE_ID}" "workspace/
 
 cd ../../
 
-tar -czf ${PLATE_ARCHIVE_DIR} ${PLATE_ARCHIVE_DIR}.tar.gz
+tar -czf ${PLATE_ARCHIVE_TAG} ${PLATE_ARCHIVE_TAG}.tar.gz
 
-tar -xOzf ${PLATE_ARCHIVE_DIR}.tar.gz | md5sum > ${PLATE_ARCHIVE_DIR}.md5
+tar -xOzf ${PLATE_ARCHIVE_TAG}.tar.gz | md5sum > ${PLATE_ARCHIVE_TAG}.md5
 
 
-aws s3 sync ${PLATE_ARCHIVE_DIR}.tar.gz ${S3_COLD_PREFIX}
+aws s3 sync ${PLATE_ARCHIVE_TAG}.tar.gz ${S3_COLD_PREFIX}
 
-rm -rf ${PLATE_ARCHIVE_DIR} ${PLATE_ARCHIVE_DIR}.tar.gz
-
+rm -rf ${PLATE_ARCHIVE_TAG} ${PLATE_ARCHIVE_TAG}.tar.gz
 
