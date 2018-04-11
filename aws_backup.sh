@@ -17,6 +17,24 @@
 #                 ├── 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092655.tar.gz
 #                 ├── ...
 #                 └── 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092789.tar.gz
+# 
+#
+# When 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092655.tar.gz is unzipped, 
+# the directory structure will look like this
+# .
+# └── 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad
+#     ├── 2017_12_05_Batch2
+#     │   ├── illum
+#     │   │   └── BR00092655
+#     │   └── images
+#     │       └── BR00092655__2017-12-10T12_48_16-Measurement 1
+#     └── workspace
+#         ├── analysis
+#         │   └── 2017_12_05_Batch2
+#         │       └── BR00092655
+#         └── backend
+#             └── 2017_12_05_Batch2
+#                 └── BR00092655
 
 
 BUCKET=imaging-platform
