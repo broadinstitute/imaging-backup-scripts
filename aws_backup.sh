@@ -84,6 +84,9 @@ cd ../../
 
 tar -czf ${PLATE_ARCHIVE_DIR} ${PLATE_ARCHIVE_DIR}.tar.gz
 
+tar -xOzf ${PLATE_ARCHIVE_DIR}.tar.gz | md5sum > ${PLATE_ARCHIVE_DIR}.md5
+
+
 aws s3 sync ${PLATE_ARCHIVE_DIR}.tar.gz ${S3_COLD_PREFIX}
 
 rm -rf ${PLATE_ARCHIVE_DIR} ${PLATE_ARCHIVE_DIR}.tar.gz
