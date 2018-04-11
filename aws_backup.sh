@@ -76,7 +76,7 @@ cd ${PROJECT_NAME}
 aws s3 sync "${S3_PREFIX}/${BATCH_ID}/images/${PLATE_ID_FULL}" "${BATCH_ID}/images/${PLATE_ID_FULL}"
 aws s3 sync "${S3_PREFIX}/${BATCH_ID}/illum/${PLATE_ID}" "${BATCH_ID}/illum/${PLATE_ID}"
 aws s3 sync "${S3_PREFIX}/workspace/analysis/${BATCH_ID}/${PLATE_ID}" "workspace/analysis/${BATCH_ID}/${PLATE_ID}"
-aws s3 sync "${S3_PREFIX}/workspace/analysis/${BATCH_ID}/${PLATE_ID}" "workspace/analysis/${BATCH_ID}/${PLATE_ID}"
+aws s3 sync "${S3_PREFIX}/workspace/backend/${BATCH_ID}/${PLATE_ID}" "workspace/analysis/${BATCH_ID}/${PLATE_ID}"
 
 # create tarball
 
