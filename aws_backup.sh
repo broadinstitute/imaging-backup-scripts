@@ -82,13 +82,21 @@ aws s3 sync "${S3_PREFIX}/workspace/backend/${BATCH_ID}/${PLATE_ID}" "workspace/
 
 cd ../../
 
-tar -czf ${PLATE_ARCHIVE_TAG} ${PLATE_ARCHIVE_TAG}.tar.gz
+tar -czf ${PLATE_ARCHIVE_TAG}.tar.gz ${PLATE_ARCHIVE_TAG}
+
+# TODO Do some checks here to make sure that the step completed without error. Perhaps just check error code?
 
 md5sum ${PLATE_ARCHIVE_TAG}.tar.gz > ${PLATE_ARCHIVE_TAG}.md5
 
-aws s3 cp ${PLATE_ARCHIVE_TAG}.tar.gz ${S3_COLD_PREFIX}/${PLATE_ARCHIVE_TAG}.tar.gz
+# TODO Do checks, same as after tar above
+
+aws s3 cp --dry-run ${PLATE_ARCHIVE_TAG}.tar.gz ${S3_COLD_PREFIX}/${PLATE_ARCHIVE_TAG}.tar.gz
+
+# TODO Do checks to ensure transfer happened
 
 aws s3 cp ${PLATE_ARCHIVE_TAG}.md5 ${S3_COLD_PREFIX}/${PLATE_ARCHIVE_TAG}.md5
+
+# TODO Do checks to ensure transfer happened
 
 rm -rf ${PLATE_ARCHIVE_TAG} ${PLATE_ARCHIVE_TAG}.tar.gz ${PLATE_ARCHIVE_TAG}.md5
 
