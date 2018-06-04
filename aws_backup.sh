@@ -78,6 +78,9 @@ aws s3 sync "${S3_PREFIX}/${BATCH_ID}/illum/${PLATE_ID}" "${BATCH_ID}/illum/${PL
 aws s3 sync "${S3_PREFIX}/workspace/analysis/${BATCH_ID}/${PLATE_ID}" "workspace/analysis/${BATCH_ID}/${PLATE_ID}"
 aws s3 sync "${S3_PREFIX}/workspace/backend/${BATCH_ID}/${PLATE_ID}" "workspace/analysis/${BATCH_ID}/${PLATE_ID}"
 
+# TODO Do checks to ensure transfer happened after each of the steps above
+
+
 # create tarball
 
 cd ../../
