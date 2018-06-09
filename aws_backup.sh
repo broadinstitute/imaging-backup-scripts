@@ -41,8 +41,8 @@
 #     --project_name 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad \
 #     --batch_id 2017_12_05_Batch2 \
 #     --plate_id_full "BR00092655__2017-12-10T12_48_16-Measurement 1" \
-#     --plate_id BR00092655
-#.    --tmp_dir ~/ebs_tmp
+#     --plate_id BR00092655 \
+#.    --tmpdir ~/ebs_tmp
 
 
 progname=`basename $0`
@@ -77,7 +77,7 @@ do
         shift
         ;;
         -t|--tmpdir)
-        tmp_dir="$2"
+        tmpdir="$2"
         shift
         ;;
         *)
@@ -89,7 +89,7 @@ done
 
 bucket="${bucket:-imaging-platform}"
 cold_bucket="${cold_bucket:-imaging-platform-cold}"
-tmp_dir="${tmp_dir:-/tmp}"
+tmpdir="${tmpdir:-/tmp}"
 
 s3_prefix=s3://${bucket}/projects/${project_name}
 s3_cold_prefix=s3://${cold_bucket}/imaging_analysis/${project_name}/plates
@@ -108,7 +108,7 @@ trap 'exit' ERR
 
 # create staging directory
 
-cd $tmp_dir
+cd $tmpdir
 
 mkdir -p ${plate_archive_tag}
 
