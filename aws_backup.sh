@@ -172,7 +172,7 @@ function process_tar_file {
 
     file_listing_tar=${tar_file}_file_listing_tar.txt
 
-    tar -tzf ${tar_file}.tar.gz | awk -F/ '{ if($NF != "") print }' > ${file_listing_tar}
+    tar -tzf ${tar_file}.tar.gz | awk -F/ '{ if($NF != "") print }' | sort > ${file_listing_tar}
 
     # calculate md5
 
@@ -217,6 +217,8 @@ tar -czf ${tar_file}.tar.gz \
 
 process_tar_file ${tar_file}
 
+file_listing_tar_1=${tar_file}_file_listing_tar.txt
+
 # create tarball for backend folders
 
 tar_file=${plate_archive_tag}_backend
@@ -225,6 +227,14 @@ tar -czf ${tar_file}.tar.gz \
   "${plate_archive_tag}/${project_name}/workspace/backend/${batch_id}/${plate_id}"
 
 process_tar_file ${tar_file}
+
+file_listing_tar_2=${tar_file}_file_listing_tar.txt
+
+# create combined file listings
+
+cat ${file_listing_tar_1} ${file_listing_tar_2} | sort > ${plate_archive_tag}_file_listing_tar.txt
+
+rm ${file_listing_tar_1} ${file_listing_tar_2}
 
 # remove downloaded files
 
