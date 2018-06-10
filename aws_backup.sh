@@ -150,10 +150,16 @@ file_listing_s3=../../${plate_archive_tag}_file_listing_s3.txt
 rm -rf ${file_listing_s3}
 touch ${file_listing_s3}
 
+# aws s3 ls return 1 if file / prefix doesn't exist
+trap 'echo' ERR
+
 aws s3 ls --recursive "${s3_prefix}/${batch_id}/images/${plate_id_full}"  >> ${file_listing_s3}
 aws s3 ls --recursive "${s3_prefix}/${batch_id}/illum/${plate_id}" >> ${file_listing_s3}
 aws s3 ls --recursive "${s3_prefix}/workspace/analysis/${batch_id}/${plate_id}" >> ${file_listing_s3}
 aws s3 ls --recursive "${s3_prefix}/workspace/backend/${batch_id}/${plate_id}" >> ${file_listing_s3}
+
+# reset trap to exit
+trap 'exit' ERR
 
 cat ${file_listing_s3} | awk -F/ '{ if($NF != "") print }' | cut -c32- | sort | sed s,projects/,,g > file_listing_s3.bak
 
