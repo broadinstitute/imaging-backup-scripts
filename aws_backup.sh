@@ -195,7 +195,14 @@ function process_tar_file {
     # check whether local ETag and remote Etag match
     # https://github.com/antespi/s3md5
 
-    etag_local=$(${script_dir}/s3md5 8 ${tar_file}.tar.gz)
+    size=$(du -b ${tar_file}.tar.gz | cut -f1)
+
+    # if size is less than or equal to 8Mb, then ETag is same as MD5
+    if [[ ( ${size} < 8388609 ) ]] ; then
+        etag_local=$(cat ${tar_file}.md5 | cut -d" " -f1)
+    else
+        etag_local=$(${script_dir}/s3md5 8 ${tar_file}.tar.gz)
+    fi
 
     etag_remote=$(aws s3api head-object --bucket ${cold_bucket} --key ${s3_cold_prefix_key}/${tar_file}.tar.gz |jq '.ETag' -|tr -d '"'|tr -d '\\')
 
