@@ -151,7 +151,7 @@ rm -rf ${file_listing_s3}
 touch ${file_listing_s3}
 
 # aws s3 ls return 1 if file / prefix doesn't exist
-trap 'echo' ERR
+trap '' ERR
 
 aws s3 ls --recursive "${s3_prefix}/${batch_id}/images/${plate_id_full}"  >> ${file_listing_s3}
 aws s3 ls --recursive "${s3_prefix}/${batch_id}/illum/${plate_id}" >> ${file_listing_s3}
