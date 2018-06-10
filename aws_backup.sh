@@ -27,7 +27,11 @@
 #
 # The corresponding md5 files are also stored alongside the tar.gz files
 #
-# When 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092655_*.tar.gz files are unzipped,
+# When 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092655_*.tar.gz files are unzipped like this,
+#
+# tar xzf 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092655_images_illum_analysis.tar.gz --strip-components=1
+# tar xzf 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092655_backend.tar.gz --strip-components=1
+#
 # the directory structure will look like this
 # .
 # └── 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad
@@ -97,7 +101,7 @@ done
 
 # project_name=2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad
 # batch_id=2017_12_05_Batch2
-# plate_id_full="BR00092655__2017-12-10T12_48_16-Measurement 1"
+# plate_id_full="xBR00092655__2017-12-10T12_48_16-Measurement 1"
 # plate_id=BR00092655
 # tmpdir=~/ebs_tmp
 
@@ -160,7 +164,7 @@ mv file_listing_s3.bak ${file_listing_s3}
 aws s3 sync "${s3_prefix}/${batch_id}/images/${plate_id_full}" "${batch_id}/images/${plate_id_full}"
 aws s3 sync "${s3_prefix}/${batch_id}/illum/${plate_id}" "${batch_id}/illum/${plate_id}"
 aws s3 sync "${s3_prefix}/workspace/analysis/${batch_id}/${plate_id}" "workspace/analysis/${batch_id}/${plate_id}"
-aws s3 sync "${s3_prefix}/workspace/backend/${batch_id}/${plate_id}" "workspace/analysis/${batch_id}/${plate_id}"
+aws s3 sync "${s3_prefix}/workspace/backend/${batch_id}/${plate_id}" "workspace/backend/${batch_id}/${plate_id}"
 
 # TODO Do checks to ensure transfer happened after each of the steps above
 
@@ -238,17 +242,25 @@ sed -i s,${plate_archive_tag}/,,g ${plate_archive_tag}_file_listing_tar.txt
 
 rm ${file_listing_tar_1} ${file_listing_tar_2}
 
+aws s3 cp ${plate_archive_tag}_file_listing_tar.txt ${s3_cold_prefix}/${plate_archive_tag}_file_listing_tar.txt
+
+aws s3 cp ${plate_archive_tag}_file_listing_s3.txt ${s3_cold_prefix}/${plate_archive_tag}_file_listing_s3.txt
+
 # remove downloaded files
 
 rm -rf ${plate_archive_tag}
 
 # remove files from S3
 
-echo Run these commands to delete files on S3
+delete_s3=${plate_archive_tag}_delete_s3.sh
+rm -rf ${delete_s3}
+touch ${delete_s3}
 
-echo aws s3 rm --recursive "${s3_prefix}/${batch_id}/images/${plate_id_full}"
-echo aws s3 rm --recursive "${s3_prefix}/${batch_id}/illum/${plate_id}"
-echo aws s3 rm --recursive "${s3_prefix}/workspace/analysis/${batch_id}/${plate_id}"
-echo aws s3 rm --recursive "${s3_prefix}/workspace/backend/${batch_id}/${plate_id}"
+echo aws s3 rm --recursive "\"${s3_prefix}/${batch_id}/images/${plate_id_full}\"" >> ${delete_s3}
+echo aws s3 rm --recursive "\"${s3_prefix}/${batch_id}/illum/${plate_id}\"" >> ${delete_s3}
+echo aws s3 rm --recursive "\"${s3_prefix}/workspace/analysis/${batch_id}/${plate_id}\"" >> ${delete_s3}
+echo aws s3 rm --recursive "\"${s3_prefix}/workspace/backend/${batch_id}/${plate_id}\"" >> ${delete_s3}
+
+aws s3 cp ${plate_archive_tag}_file_listing_tar.txt ${s3_cold_prefix}/${delete_s3}
 
 
