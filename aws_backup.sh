@@ -151,7 +151,7 @@ aws s3 ls --recursive "${s3_prefix}/${batch_id}/illum/${plate_id}" >> ${file_lis
 aws s3 ls --recursive "${s3_prefix}/workspace/analysis/${batch_id}/${plate_id}" >> ${file_listing_s3}
 aws s3 ls --recursive "${s3_prefix}/workspace/backend/${batch_id}/${plate_id}" >> ${file_listing_s3}
 
-cat ${file_listing_s3} | awk -F/ '{ if($NF != "") print }' | cut -c32- | sort > file_listing_s3.bak
+cat ${file_listing_s3} | awk -F/ '{ if($NF != "") print }' | cut -c32- | sort | sed s,projects/,,g > file_listing_s3.bak
 
 mv file_listing_s3.bak ${file_listing_s3}
 
@@ -233,6 +233,8 @@ file_listing_tar_2=${tar_file}_file_listing_tar.txt
 # create combined file listings
 
 cat ${file_listing_tar_1} ${file_listing_tar_2} | sort > ${plate_archive_tag}_file_listing_tar.txt
+
+sed -i s,${plate_archive_tag}/,,g ${plate_archive_tag}_file_listing_tar.txt
 
 rm ${file_listing_tar_1} ${file_listing_tar_2}
 
