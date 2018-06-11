@@ -25,17 +25,17 @@
 #     └── imaging_analysis
 #         └── 2013_Gustafsdottir_PLOSONE
 #             └── plates
-#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_file_listing_untrimmed_s3.txt
-#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_backend.md5
-#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_backend.tar.gz
-#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_images_illum_analysis.md5
-#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_images_illum_analysis.tar.gz
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_20586_file_listing_untrimmed_s3.txt
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_20586_backend.md5
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_20586_backend.tar.gz
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_20586_images_illum_analysis.md5
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_20586_images_illum_analysis.tar.gz
 #                 ├── ...
-#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092789_file_listing_untrimmed_s3.txt
-#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092789_backend.md5
-#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092789_backend.tar.gz
-#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092789_images_illum_analysis.md5
-#                 └── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092789_images_illum_analysis.tar.gz
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_20589_file_listing_untrimmed_s3.txt
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_20589_backend.md5
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_20589_backend.tar.gz
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_20589_images_illum_analysis.md5
+#                 └── 2013_Gustafsdottir_PLOSONE_BBBC022_20589_images_illum_analysis.tar.gz
 #
 # Additionally, the following 3 files are stored in the "live" bucket (e.g. imaging-platform)
 # 
@@ -48,36 +48,37 @@
 #
 # The third file has a list of awscli commands to delete the files that have been archived by this process.
 # 
-# To delete 
+# When 2013_Gustafsdottir_PLOSONE_BBBC022_20586_*.tar.gz files are unzipped like this,
 #
-# When 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_*.tar.gz files are unzipped like this,
-#
-# tar xzf 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_images_illum_analysis.tar.gz --strip-components=1
-# tar xzf 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_backend.tar.gz --strip-components=1
+# tar xzf 2013_Gustafsdottir_PLOSONE_BBBC022_20586_images_illum_analysis.tar.gz --strip-components=1
+# tar xzf 2013_Gustafsdottir_PLOSONE_BBBC022_20586_backend.tar.gz --strip-components=1
 #
 # the directory structure will look like this
 # .
 # └── 2013_Gustafsdottir_PLOSONE
 #     ├── BBBC022
 #     │   ├── illum
-#     │   │   └── BR00092655
+#     │   │   └── 20586
 #     │   └── images
-#     │       └── BR00092655__2017-12-10T12_48_16-Measurement 1
+#     │       └── 20586
 #     └── workspace
 #         ├── analysis
 #         │   └── BBBC022
-#         │       └── BR00092655
+#         │       └── 20586
 #         └── backend
 #             └── BBBC022
-#                 └── BR00092655
+#                 └── 20586
 # Example usage:
 #
 # ./aws_backup.sh \
 #     --project_name 2013_Gustafsdottir_PLOSONE \
 #     --batch_id BBBC022 \
-#     --plate_id_full "BR00092655__2017-12-10T12_48_16-Measurement 1" \
-#     --plate_id BR00092655 \
-#.    --tmpdir ~/ebs_tmp
+#     --plate_id_full "20586" \
+#     --plate_id 20586 \
+#     --tmpdir ~/ebs_tmp
+# 
+# Note: In the example above, `plate_id` and `plate_id_full` are the same but this is not always true.
+# E.g. The `plate_id` for "BR00092655__2017-12-10T12_48_16-Measurement 1" is "BR00092655"
 
 
 progname=`basename $0`
@@ -124,10 +125,9 @@ done
 
 # project_name=2013_Gustafsdottir_PLOSONE
 # batch_id=BBBC022
-# plate_id_full="xBR00092655__2017-12-10T12_48_16-Measurement 1"
-# plate_id=BR00092655
+# plate_id_full="20586"
+# plate_id=20586
 # tmpdir=~/ebs_tmp
-
 
 bucket="${bucket:-imaging-platform}"
 cold_bucket="${cold_bucket:-imaging-platform-cold}"
