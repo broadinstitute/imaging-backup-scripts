@@ -199,7 +199,7 @@ function process_tar_file {
     size=$(du -b ${tar_file}.tar.gz | cut -f1)
 
     # if size is less than or equal to 8Mb, then ETag is same as MD5
-    if [[ ( ${size} < 8388609 ) ]] ; then
+    if [ ${size} -le 8388608 ] ; then
         etag_local=$(cat ${tar_file}.md5 | cut -d" " -f1)
     else
         etag_local=$(${script_dir}/s3md5 8 ${tar_file}.tar.gz)
