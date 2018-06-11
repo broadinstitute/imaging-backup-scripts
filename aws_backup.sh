@@ -8,50 +8,73 @@
 # - SQLite backend created by ingesting the CSV files (typically ~24Gb)
 # - CSV and GCT files created by processing the SQLite backend (tiny)
 #
-# The tar balls are stored at this location
+# The tar balls (and their corresponding md5 files) are stored at this location on the "cold" bucket (e.g. imaging-platform-cold)
 #
 # s3://imaging-platform-cold/imaging_analysis/<PROJECT_NAME>/plates/<PROJECT_NAME>_<BATCH_ID>_<PLATE_ID>_images_illum_analysis.tar.gz
 # s3://imaging-platform-cold/imaging_analysis/<PROJECT_NAME>/plates/<PROJECT_NAME>_<BATCH_ID>_<PLATE_ID>_backend.tar.gz
+# s3://imaging-platform-cold/imaging_analysis/<PROJECT_NAME>/plates/<PROJECT_NAME>_<BATCH_ID>_<PLATE_ID>_images_illum_analysis.md5
+# s3://imaging-platform-cold/imaging_analysis/<PROJECT_NAME>/plates/<PROJECT_NAME>_<BATCH_ID>_<PLATE_ID>_backend.md5
 #
+# The file listing of the contents of both tarballs (as they existed on S3) are stored at this location on the "cold" bucket
+#
+# s3://imaging-platform-cold/imaging_analysis/<PROJECT_NAME>/plates/<PROJECT_NAME>_<BATCH_ID>_<PLATE_ID>_file_listing_untrimmed_s3.txt
+# 
 # e.g.
 # .
 # └── imaging-platform-cold
 #     └── imaging_analysis
-#         └── 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad
+#         └── 2013_Gustafsdottir_PLOSONE
 #             └── plates
-#                 ├── 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092655_images_illum_analysis.tar.gz
-#                 ├── 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092655_backend.tar.gz
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_file_listing_untrimmed_s3.txt
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_backend.md5
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_backend.tar.gz
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_images_illum_analysis.md5
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_images_illum_analysis.tar.gz
 #                 ├── ...
-#                 ├── 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092789_images_illum_analysis.tar.gz
-#                 └── 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092789_backend.tar.gz
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092789_file_listing_untrimmed_s3.txt
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092789_backend.md5
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092789_backend.tar.gz
+#                 ├── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092789_images_illum_analysis.md5
+#                 └── 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092789_images_illum_analysis.tar.gz
 #
-# The corresponding md5 files are also stored alongside the tar.gz files
+# Additionally, the following 3 files are stored in the "live" bucket (e.g. imaging-platform)
+# 
+# s3://imaging-platform/projects/<PROJECT_NAME>/workspace/backup/<PROJECT_NAME>_<BATCH_ID>_<PLATE_ID>_file_listing_s3.txt
+# s3://imaging-platform/projects/<PROJECT_NAME>/workspace/backup/<PROJECT_NAME>_<BATCH_ID>_<PLATE_ID>_file_listing_tar.txt
+# s3://imaging-platform/projects/<PROJECT_NAME>/workspace/backup/<PROJECT_NAME>_<BATCH_ID>_<PLATE_ID>_delete_s3.sh
 #
-# When 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092655_*.tar.gz files are unzipped like this,
+# The first two are file listings of the archives as they exist on S3 and in the tarball respectively. They have been
+# formatted so that they can be compared via diff or by their ETag. 
 #
-# tar xzf 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092655_images_illum_analysis.tar.gz --strip-components=1
-# tar xzf 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad_2017_12_05_Batch2_BR00092655_backend.tar.gz --strip-components=1
+# The third file has a list of awscli commands to delete the files that have been archived by this process.
+# 
+# To delete 
+#
+# When 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_*.tar.gz files are unzipped like this,
+#
+# tar xzf 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_images_illum_analysis.tar.gz --strip-components=1
+# tar xzf 2013_Gustafsdottir_PLOSONE_BBBC022_BR00092655_backend.tar.gz --strip-components=1
 #
 # the directory structure will look like this
 # .
-# └── 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad
-#     ├── 2017_12_05_Batch2
+# └── 2013_Gustafsdottir_PLOSONE
+#     ├── BBBC022
 #     │   ├── illum
 #     │   │   └── BR00092655
 #     │   └── images
 #     │       └── BR00092655__2017-12-10T12_48_16-Measurement 1
 #     └── workspace
 #         ├── analysis
-#         │   └── 2017_12_05_Batch2
+#         │   └── BBBC022
 #         │       └── BR00092655
 #         └── backend
-#             └── 2017_12_05_Batch2
+#             └── BBBC022
 #                 └── BR00092655
 # Example usage:
 #
 # ./aws_backup.sh \
-#     --project_name 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad \
-#     --batch_id 2017_12_05_Batch2 \
+#     --project_name 2013_Gustafsdottir_PLOSONE \
+#     --batch_id BBBC022 \
 #     --plate_id_full "BR00092655__2017-12-10T12_48_16-Measurement 1" \
 #     --plate_id BR00092655 \
 #.    --tmpdir ~/ebs_tmp
@@ -99,8 +122,8 @@ do
     shift
 done
 
-# project_name=2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad
-# batch_id=2017_12_05_Batch2
+# project_name=2013_Gustafsdottir_PLOSONE
+# batch_id=BBBC022
 # plate_id_full="xBR00092655__2017-12-10T12_48_16-Measurement 1"
 # plate_id=BR00092655
 # tmpdir=~/ebs_tmp
@@ -166,7 +189,15 @@ aws s3 ls --recursive "${s3_prefix}/workspace/backend/${batch_id}/${plate_id}" >
 # reset trap to exit
 trap 'exit' ERR
 
-cat ${file_listing_untrimmed_s3} | awk -F/ '{ if($NF != "") print }' | cut -c32- | sort | sed s,projects/,,g > ${file_listing_s3}
+# make list of files on S3
+cat ${file_listing_untrimmed_s3} | \
+  awk -F/ '{ if($NF != "") print }' | \
+  tr -s " " | \
+  cut -d" " -f3,4 | \
+  awk '{ print $2 "\t" $1}' | \
+  sed s,projects/,,g | \
+  sort > \
+  ${file_listing_s3}
 
 # download data from S3
 
@@ -185,7 +216,14 @@ function process_tar_file {
 
     file_listing_tar=${tar_file}_file_listing_tar.txt
 
-    tar -tzf ${tar_file}.tar.gz | awk -F/ '{ if($NF != "") print }' | sort > ${file_listing_tar}
+    tar -tvzf ${tar_file}.tar.gz | \
+      awk -F/ '{ if($NF != "") print }' | \
+      tr -s " " | \
+      cut -f3,6 -d" " \
+      awk '{ print $2 "\t" $1}' | \
+      sed s,${plate_archive_tag}/,,g \
+      sort | \
+      ${file_listing_tar}
 
     # calculate md5
 
@@ -253,8 +291,6 @@ file_listing_tar_2=${tar_file}_file_listing_tar.txt
 # create combined file listings
 
 cat ${file_listing_tar_1} ${file_listing_tar_2} | sort > ${plate_archive_tag}_file_listing_tar.txt
-
-sed -i s,${plate_archive_tag}/,,g ${plate_archive_tag}_file_listing_tar.txt
 
 rm ${file_listing_tar_1} ${file_listing_tar_2}
 
