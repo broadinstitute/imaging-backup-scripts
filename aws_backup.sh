@@ -219,8 +219,8 @@ function process_tar_file {
     tar -tvzf ${tar_file}.tar.gz | \
       awk -F/ '{ if($NF != "") print }' | \
       tr -s " " | \
-      cut -f3,6 -d" " \
-      awk '{ print $2 "\t" $1}' | \
+      cut -f3,6 -d" " | \
+      awk '{ print $2 "\t" $1 }' | \
       sed s,${plate_archive_tag}/,,g | \
       sort > \
       ${file_listing_tar}
