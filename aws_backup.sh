@@ -111,6 +111,7 @@ cold_bucket="${cold_bucket:-imaging-platform-cold}"
 tmpdir="${tmpdir:-/tmp}"
 
 s3_prefix=s3://${bucket}/projects/${project_name}
+s3_backup_prefix=s3://${bucket}/projects/${project_name}/workspace/backup
 s3_cold_prefix=s3://${cold_bucket}/imaging_analysis/${project_name}/plates
 s3_cold_prefix_key=imaging_analysis/${project_name}/plates
 plate_archive_tag=${project_name}_${batch_id}_${plate_id}
@@ -255,11 +256,11 @@ sed -i s,${plate_archive_tag}/,,g ${plate_archive_tag}_file_listing_tar.txt
 
 rm ${file_listing_tar_1} ${file_listing_tar_2}
 
-aws s3 cp ${plate_archive_tag}_file_listing_tar.txt ${s3_cold_prefix}/${plate_archive_tag}_file_listing_tar.txt
+aws s3 cp ${plate_archive_tag}_file_listing_tar.txt ${s3_backup_prefix}/${plate_archive_tag}_file_listing_tar.txt
 
 rm ${plate_archive_tag}_file_listing_tar.txt
 
-aws s3 cp ${plate_archive_tag}_file_listing_s3.txt ${s3_cold_prefix}/${plate_archive_tag}_file_listing_s3.txt
+aws s3 cp ${plate_archive_tag}_file_listing_s3.txt ${s3_backup_prefix}/${plate_archive_tag}_file_listing_s3.txt
 
 rm ${plate_archive_tag}_file_listing_s3.txt
 
@@ -280,7 +281,7 @@ echo aws s3 rm --recursive "\"${s3_prefix}/${batch_id}/illum/${plate_id}\"" >> $
 echo aws s3 rm --recursive "\"${s3_prefix}/workspace/analysis/${batch_id}/${plate_id}\"" >> ${delete_s3}
 echo aws s3 rm --recursive "\"${s3_prefix}/workspace/backend/${batch_id}/${plate_id}\"" >> ${delete_s3}
 
-aws s3 cp ${delete_s3} ${s3_cold_prefix}/${delete_s3}
+aws s3 cp ${delete_s3} ${s3_backup_prefix}/${delete_s3}
 
 rm ${delete_s3}
 
