@@ -257,16 +257,22 @@ rm ${file_listing_tar_1} ${file_listing_tar_2}
 
 aws s3 cp ${plate_archive_tag}_file_listing_tar.txt ${s3_cold_prefix}/${plate_archive_tag}_file_listing_tar.txt
 
+rm ${plate_archive_tag}_file_listing_tar.txt
+
 aws s3 cp ${plate_archive_tag}_file_listing_s3.txt ${s3_cold_prefix}/${plate_archive_tag}_file_listing_s3.txt
+
+rm ${plate_archive_tag}_file_listing_s3.txt
 
 # remove downloaded files
 
 rm -rf ${plate_archive_tag}
 
-# remove files from S3
+# create script to delete files from S3 (but don't actually delete them)
 
 delete_s3=${plate_archive_tag}_delete_s3.sh
+
 rm -rf ${delete_s3}
+
 touch ${delete_s3}
 
 echo aws s3 rm --recursive "\"${s3_prefix}/${batch_id}/images/${plate_id_full}\"" >> ${delete_s3}
@@ -275,5 +281,7 @@ echo aws s3 rm --recursive "\"${s3_prefix}/workspace/analysis/${batch_id}/${plat
 echo aws s3 rm --recursive "\"${s3_prefix}/workspace/backend/${batch_id}/${plate_id}\"" >> ${delete_s3}
 
 aws s3 cp ${delete_s3} ${s3_cold_prefix}/${delete_s3}
+
+rm ${delete_s3}
 
 
