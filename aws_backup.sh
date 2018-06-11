@@ -274,6 +274,6 @@ echo aws s3 rm --recursive "\"${s3_prefix}/${batch_id}/illum/${plate_id}\"" >> $
 echo aws s3 rm --recursive "\"${s3_prefix}/workspace/analysis/${batch_id}/${plate_id}\"" >> ${delete_s3}
 echo aws s3 rm --recursive "\"${s3_prefix}/workspace/backend/${batch_id}/${plate_id}\"" >> ${delete_s3}
 
-aws s3 cp ${plate_archive_tag}_file_listing_tar.txt ${s3_cold_prefix}/${delete_s3}
+aws s3 cp ${delete_s3} ${s3_cold_prefix}/${delete_s3}
 
 
