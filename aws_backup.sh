@@ -221,7 +221,7 @@ function process_tar_file {
       tr -s " " | \
       cut -f3,6 -d" " \
       awk '{ print $2 "\t" $1}' | \
-      sed s,${plate_archive_tag}/,,g \
+      sed s,${plate_archive_tag}/,,g | \
       sort | \
       ${file_listing_tar}
 
