@@ -148,23 +148,25 @@ cd ${project_name}
 # get file listing
 
 file_listing_s3=../../${plate_archive_tag}_file_listing_s3.txt
-rm -rf ${file_listing_s3}
-touch ${file_listing_s3}
+
+file_listing_untrimmed_s3=../../${plate_archive_tag}_file_listing_untrimmed_s3.txt
+
+rm -rf ${file_listing_untrimmed_s3}
+
+touch ${file_listing_untrimmed_s3}
 
 # aws s3 ls return 1 if file / prefix doesn't exist
 trap '' ERR
 
-aws s3 ls --recursive "${s3_prefix}/${batch_id}/images/${plate_id_full}"  >> ${file_listing_s3}
-aws s3 ls --recursive "${s3_prefix}/${batch_id}/illum/${plate_id}" >> ${file_listing_s3}
-aws s3 ls --recursive "${s3_prefix}/workspace/analysis/${batch_id}/${plate_id}" >> ${file_listing_s3}
-aws s3 ls --recursive "${s3_prefix}/workspace/backend/${batch_id}/${plate_id}" >> ${file_listing_s3}
+aws s3 ls --recursive "${s3_prefix}/${batch_id}/images/${plate_id_full}"  >> ${file_listing_untrimmed_s3}
+aws s3 ls --recursive "${s3_prefix}/${batch_id}/illum/${plate_id}" >> ${file_listing_untrimmed_s3}
+aws s3 ls --recursive "${s3_prefix}/workspace/analysis/${batch_id}/${plate_id}" >> ${file_listing_untrimmed_s3}
+aws s3 ls --recursive "${s3_prefix}/workspace/backend/${batch_id}/${plate_id}" >> ${file_listing_untrimmed_s3}
 
 # reset trap to exit
 trap 'exit' ERR
 
-cat ${file_listing_s3} | awk -F/ '{ if($NF != "") print }' | cut -c32- | sort | sed s,projects/,,g > file_listing_s3.bak
-
-mv file_listing_s3.bak ${file_listing_s3}
+cat ${file_listing_untrimmed_s3} | awk -F/ '{ if($NF != "") print }' | cut -c32- | sort | sed s,projects/,,g > ${file_listing_s3}
 
 # download data from S3
 
@@ -263,6 +265,10 @@ rm ${plate_archive_tag}_file_listing_tar.txt
 aws s3 cp ${plate_archive_tag}_file_listing_s3.txt ${s3_backup_prefix}/${plate_archive_tag}_file_listing_s3.txt
 
 rm ${plate_archive_tag}_file_listing_s3.txt
+
+aws s3 cp ${plate_archive_tag}_file_listing_untrimmed_s3.txt ${s3_cold_prefix}/${plate_archive_tag}_file_listing_untrimmed_s3.txt
+
+rm ${plate_archive_tag}_file_listing_untrimmed_s3.txt
 
 # remove downloaded files
 
