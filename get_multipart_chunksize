@@ -2,7 +2,7 @@
 
 args <- commandArgs(trailingOnly=TRUE)
 
-file_size <- args[1]
+file_size <- as.numeric(args[[1]])
 
 multipart_chunksize <- 8 * 1024 * 1024
 
@@ -10,4 +10,4 @@ while (file_size / multipart_chunksize > 10000) {
   multipart_chunksize <- multipart_chunksize * 2
 }
 
-print(multipart_chunksize / (1024 * 1024))
+cat(multipart_chunksize / (1024 * 1024))
