@@ -242,7 +242,9 @@ function process_tar_file {
     if [ ${size} -le 8388608 ] ; then
         etag_local=$(cat ${tar_file}.md5 | cut -d" " -f1)
     else
-        etag_local=$(${script_dir}/s3md5 8 ${tar_file}.tar.gz)
+        multipart_chunksize=$(${script_dir}/get_multipart_chunksize ${tar_file}.tar.gz)
+        
+        etag_local=$(${script_dir}/s3md5 ${multipart_chunksize} ${tar_file}.tar.gz)
     fi
 
     etag_remote=$(aws s3api head-object --bucket ${cold_bucket} --key ${s3_cold_prefix_key}/${tar_file}.tar.gz |jq '.ETag' -|tr -d '"'|tr -d '\\')
