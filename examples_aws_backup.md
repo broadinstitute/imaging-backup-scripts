@@ -1,4 +1,4 @@
-# Backing up projects on on S3 using aws_backup.sh
+# Backing up projects on S3 using aws_backup.sh
 
 The script `aws_backup.sh` expects the project directories to have a very specific structure. 
 See the script documentation for details. 
