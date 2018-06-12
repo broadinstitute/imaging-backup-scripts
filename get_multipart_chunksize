@@ -2,7 +2,7 @@
 
 args <- commandArgs(trailingOnly=TRUE)
 
-file_size <- as.numeric(args[[1]])
+file_size <- file.size(args[[1]])
 
 multipart_chunksize <- 8 * 1024 * 1024
 
