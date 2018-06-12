@@ -5,4 +5,4 @@ parallel \
   sort -nr | \
   awk '{ print $2 "," $1 }' | \
   cut -d"/" -f5 > \
-  imaging-platform_project_sizes.txt
+  imaging-platform_project_sizes.csv
