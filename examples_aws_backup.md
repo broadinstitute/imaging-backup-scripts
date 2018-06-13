@@ -1,11 +1,11 @@
 # Backing up projects on S3 using aws_backup.sh
 
-The script `aws_backup.sh` expects the project directories to have a very specific structure. 
-See the script documentation for details. 
+The script `aws_backup.sh` expects the project directories to have a very specific structure.
+See the script documentation for details.
 
 `aws_backup.sh` creates one set of tarballs for each plate of data. This makes retrieval easy.
 
-Start a large  ec2 instance (e.g. `m4.16xlarge`) because you will need plenty of memory, high network bandwidth. 
+Start a large  ec2 instance (e.g. `m4.16xlarge`) because you will need plenty of memory, high network bandwidth.
 
 Then attach a large EBS volume to the instance. As of June 2018, each 384-well plate of Cell Painting data acquired at the Broad produces about 300Gb of data, of which 230Gb are images. During the archiving process, both, the uncompressed files as well as the tarballs (about 250Gb) will reside on the EBS volume. You will need n x 550Gb of disk space on the EBS volume. The maximum allowable size is 16Tb, so you can comfortably process 27 plates of data in parallel given this limit.
 
@@ -76,7 +76,7 @@ Set `MAXPROCS` to be the maximum number of plates to be processed in parallel. T
 MAXPROCS=10
 ```
 
-Run the archiving script across all the plates. 
+Run the archiving script across all the plates. This step can also been run in parallel on remote servers using SSH (see alternate workflow for this step below).
 
 ```
 parallel \
@@ -97,11 +97,11 @@ parallel \
     --tmpdir ~/ebs_tmp
 ```
 
-Check whether archiving process succeeded. First, define functions to check whether etags of file listings match. 
+Check whether archiving process succeeded. First, define functions to check whether etags of file listings match.
 
 ```
-function etag { 
-	aws s3api head-object --bucket imaging-platform --key $1 |jq '.ETag' -|tr -d '"'|tr -d '\\' 
+function etag {
+	aws s3api head-object --bucket imaging-platform --key $1 |jq '.ETag' -|tr -d '"'|tr -d '\\'
 }
 
 
@@ -168,13 +168,13 @@ parallel -a delete_s3.sh
 
 ## Alternate workflow using parallel with ssh
 
-Fire up many machines
+Fire up many machines. Configure `config.json` appropriately before launching. You may need to run `aws configure` before requesting the fleet.
 
 ```
 aws ec2 request-spot-fleet --spot-fleet-request-config file://config.json
 ```
 
-Set up key to access the machines
+Set up key to access the machines. The key should be the same as the `KeyName` specified in `config.json`
 
 ```
 eval "$(ssh-agent -s)"
@@ -202,7 +202,7 @@ Make a list of all the nodes
 echo -n $HOSTS | parallel -d " " echo ubuntu@{1} > nodes.txt
 ```
 
-Clear contents tmp directory
+Clear contents of tmp directory
 
 ```
 parallel  \
@@ -212,13 +212,19 @@ parallel  \
   "rm -rf /tmp/*"
 ```
 
-Initialize environment in each machine
+The `imaging-backup-scripts` repo is private, so upload the zipped version to some location, and set the variable REPO.
+
 ```
 REPO="https://imaging-platform.s3.amazonaws.com/tmp/imaging-backup-scripts-master.zip"
+```
 
+Initialize environment in each machine.
+
+```
 INIT_ENV="rm -rf ~/ebs_tmp && mkdir -p ~/ebs_tmp && cd ~/ebs_tmp && wget ${REPO} && unzip imaging-backup-scripts-master.zip"
 
 parallel  \
+  --delay 2.5 \
   --no-run-if-empty \
   --sshloginfile nodes.txt \
   --results init_env \
@@ -228,26 +234,33 @@ parallel  \
   ${INIT_ENV}
 ```
 
+Check whether there is enough space.
+
 ```
 parallel  \
+  --delay 2.5 \
   --no-run-if-empty \
   --sshloginfile nodes.txt \
   --nonall \
   "df -h|grep /dev/xvda1"
 ```
 
+Check whether the repo has been downloaded correctly.
+
 ```
 parallel  \
+  --delay 2.5 \
   --no-run-if-empty \
   --sshloginfile nodes.txt \
   --nonall \
   "ls ~/ebs_tmp/imaging-backup-scripts-master"
 ```
 
-process all plates in parallel
+Run the archiving script across all the plates.
 
 ```
 parallel \
+  --delay 2.5 \
   --no-run-if-empty \
   --sshloginfile nodes.txt \
   --env PATH \
@@ -262,3 +275,5 @@ parallel \
   --files \
   "cd ~/ebs_tmp/imaging-backup-scripts-master && ./aws_backup.sh --project_name \"${PROJECT_NAME}\" --batch_id \"${BATCH_ID}\" --plate_id \"{1}\" --plate_id_full \"{2}\" --tmpdir ~/ebs_tmp"
 ```
+
+Now continue with the regular workflow ("Check whether archiving process succeeded...")
