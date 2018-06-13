@@ -1,0 +1,52 @@
+{
+  "IamFleetRole": "arn:aws:iam::385009899373:role/aws-ec2-spot-fleet-tagging-role",
+  "AllocationStrategy": "lowestPrice",
+  "TargetCapacity": 3,
+  "SpotPrice": "0.08",
+  "ValidFrom": "2018-01-15T18:27:00Z",
+  "ValidUntil": "2019-01-15T18:27:00Z",
+  "TerminateInstancesWithExpiration": true,
+  "LaunchSpecifications": [
+    {
+      "ImageId": "ami-3480df4e",
+      "InstanceType": "m4.xlarge",
+      "SubnetId": "subnet-d2d5c7a4",
+      "KeyName": "CellProfiler",
+      "SpotPrice": "0.08",
+      "IamInstanceProfile": {
+        "Arn": "arn:aws:iam::385009899373:instance-profile/s3-imaging-platform-role"
+      },
+      "BlockDeviceMappings": [
+        {
+          "DeviceName": "/dev/sda1",
+          "Ebs": {
+            "DeleteOnTermination": true,
+            "VolumeType": "gp2",
+            "VolumeSize": 500,
+            "SnapshotId": "snap-0d61c49c2c8ecee7a"
+          }
+        }
+      ],
+      "SecurityGroups": [
+        {
+          "GroupId": "sg-2a88ab51"
+        },
+        {
+          "GroupId": "sg-74b99a0f"
+        }
+      ],
+      "TagSpecifications": [
+        {
+          "ResourceType": "instance",
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": "imaging-backup"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "Type": "request"
+}
