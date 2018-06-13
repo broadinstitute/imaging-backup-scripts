@@ -7,9 +7,10 @@ See the script documentation for details.
 
 Start a large  ec2 instance (e.g. `m4.16xlarge`) because you will need plenty of memory, high network bandwidth. 
 
-Then attach a large EBS volume to the instance. As of June 2018, each 384-well plate of Cell Painting data acquired at the Broad produces about 300Gb of data, of which 230Gb are images. During the archiving process, both, the uncompressed files as well as the tarballs (~250Gb) will reside on the EBS volume. You will need n x 550Gb of disk space on the EBS volume. The maximum allowable size is 16Tb, so you can comfortably process 27 plates of data in parallel given this limit. 
+Then attach a large EBS volume to the instance. As of June 2018, each 384-well plate of Cell Painting data acquired at the Broad produces about 300Gb of data, of which 230Gb are images. During the archiving process, both, the uncompressed files as well as the tarballs (about 250Gb) will reside on the EBS volume. You will need n x 550Gb of disk space on the EBS volume. The maximum allowable size is 16Tb, so you can comfortably process 27 plates of data in parallel given this limit.
 
 To mount the EBS volume (after attaching via the AWS interface), do the following
+
 ```sh
 # check the name of the disk
 lsblk
@@ -37,8 +38,8 @@ sudo chmod 777 ~/ebs_tmp/
 Next define variables and download the scripts.
 
 ```
-PROJECT_NAME=2013_Gustafsdottir_PLOSONE
-BATCH_ID=BBBC022
+PROJECT_NAME=2015_Bray_GigaScience
+BATCH_ID=CDRP
 
 mkdir ~/ebs_tmp
 
@@ -55,7 +56,7 @@ Create a list of plates to be archived. `plate_id_full` is the full name of the 
 ```
 echo "plate_id,plate_id_full" > plates.csv
 
-echo 20585 20586 20589 20590 20591 20592 20593 20594 20595 20596 20607 20608 20625 20626 20630 20633 20639 20640 20641 20646 | \
+echo 24277 24278 24279 | \
   tr " " "\n" |
   awk '{ print $1 "," $1 }' \
   >> plates.csv
@@ -162,4 +163,102 @@ cat delete_s3/* > delete_s3.sh
 Delete the files from S3!
 ```
 parallel -a delete_s3.sh
+```
+
+
+## Alternate workflow using parallel with ssh
+
+Fire up many machines
+
+```
+aws ec2 request-spot-fleet --spot-fleet-request-config file://config.json
+```
+
+Set up key to access the machines
+
+```
+eval "$(ssh-agent -s)"
+
+PEMFILE=/tmp/CellProfiler.pem
+
+ssh-add ${PEMFILE}
+```
+
+Get list of machines
+
+```
+HOSTS=`aws ec2 describe-instances --filters "Name=tag:Name,Values=imaging-backup" --query "Reservations[].Instances[].PublicDnsName" --region "us-east-1" | jq -r .[]`
+```
+
+Log in to each machine after turning off host key checking so that it is entered into known hosts
+
+```
+echo -n $HOSTS | parallel --max-procs 1 -v --gnu -d " " -I HOST "ssh -o StrictHostKeyChecking=no -l ubuntu HOST 'exit'"
+```
+
+Make a list of all the nodes
+
+```
+echo -n $HOSTS | parallel -d " " echo ubuntu@{1} > nodes.txt
+```
+
+Clear contents tmp directory
+
+```
+parallel  \
+  --no-run-if-empty \
+  --sshloginfile nodes.txt \
+  --nonall \
+  "rm -rf /tmp/*"
+```
+
+Initialize environment in each machine
+```
+REPO="https://imaging-platform.s3.amazonaws.com/tmp/imaging-backup-scripts-master.zip"
+
+INIT_ENV="rm -rf ~/ebs_tmp && mkdir -p ~/ebs_tmp && cd ~/ebs_tmp && wget ${REPO} && unzip imaging-backup-scripts-master.zip"
+
+parallel  \
+  --no-run-if-empty \
+  --sshloginfile nodes.txt \
+  --results init_env \
+  --files \
+  --env PATH \
+  --nonall \
+  ${INIT_ENV}
+```
+
+```
+parallel  \
+  --no-run-if-empty \
+  --sshloginfile nodes.txt \
+  --nonall \
+  "df -h|grep /dev/xvda1"
+```
+
+```
+parallel  \
+  --no-run-if-empty \
+  --sshloginfile nodes.txt \
+  --nonall \
+  "ls ~/ebs_tmp/imaging-backup-scripts-master"
+```
+
+process all plates in parallel
+
+```
+parallel \
+  --no-run-if-empty \
+  --sshloginfile nodes.txt \
+  --env PATH \
+  --max-procs ${MAXPROCS} \
+  --eta \
+  --joblog ${LOGDIR}/backup.log \
+  --results ${LOGDIR}/backup \
+  -a plates.csv \
+  --header ".*\n" \
+  -C "," \
+  --keep-order \
+  --files \
+  "cd ~/ebs_tmp/imaging-backup-scripts-master && ./aws_backup.sh --project_name \"${PROJECT_NAME}\" --batch_id \"${BATCH_ID}\" --plate_id \"{1}\" --plate_id_full \"{2}\" --tmpdir ~/ebs_tmp"
 ```
