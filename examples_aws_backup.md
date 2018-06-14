@@ -113,6 +113,7 @@ function check_plate {
 
 	if [[ $(etag ${s3_files}) != $(etag ${tar_files}) ]] ; then echo File listings do not match; exit 1; fi
 }
+
 ```
 
 Now check whether the file listings of the uploaded tarball and that of the S3 directory are identical
@@ -141,7 +142,7 @@ Check whether there are any errors. If they are errors, you'd need to probe furt
 ```
 find ${LOGDIR}/backup_check -name stderr -exec cat {} \;
 
-cat find ${LOGDIR}/backup_check.log
+cat ${LOGDIR}/backup_check.log
 ```
 
 *The next few steps will delete the source files. Be sure that the backup process has been successful before doing so!*
