@@ -169,10 +169,28 @@ parallel -a delete_s3.sh
 
 ## Alternate workflow using parallel with ssh
 
-Fire up many machines. Configure `config.json` appropriately before launching. You may need to run `aws configure` before requesting the fleet.
+Fire up many machines. Configure `config.json` appropriately before launching.
+
+Set `TargetCapacity` to be number of machines to run in parallel. If the number of plate is less than 50, set this to the number of plates. If the number of plate is greater than 50, set this so that there are not too many idle machines sitting around towards the end. E.g. For, say, 65 plates, set `TargetCapacity` to 22. Here's one way to compute `TargetCapacity` for a batch with large number of plates.
+
+```
+n = 177 # e.g. number of plates
+k_max = 50 # max no. of machine to launch
+w_max = 5 # max no. of machines that should be idle in the final iteration
+
+k = k_max
+
+while (n % k > w_max):
+    k = k - 1
+
+print k # TargetCapacity
+```
+
+You may need to run `aws configure` before requesting the fleet.
 
 ```
 aws ec2 request-spot-fleet --spot-fleet-request-config file://config.json
+
 ```
 
 Set up key to access the machines. The key should be the same as the `KeyName` specified in `config.json`
@@ -183,18 +201,27 @@ eval "$(ssh-agent -s)"
 PEMFILE=/tmp/CellProfiler.pem
 
 ssh-add ${PEMFILE}
+
 ```
 
 Get list of machines
 
 ```
 HOSTS=`aws ec2 describe-instances --filters "Name=tag:Name,Values=imaging-backup" --query "Reservations[].Instances[].PublicDnsName" --region "us-east-1" | jq -r .[]`
+
 ```
 
 Log in to each machine after turning off host key checking so that it is entered into known hosts
 
 ```
-echo -n $HOSTS | parallel --max-procs 1 -v --gnu -d " " -I HOST "ssh -o StrictHostKeyChecking=no -l ubuntu HOST 'exit'"
+echo -n $HOSTS | \
+  parallel   --delay 1 \
+  --max-procs 1 \
+  -v \
+  --gnu -d " " \
+  -I HOST \
+  "ssh -o StrictHostKeyChecking=no -l ubuntu HOST 'exit'"
+
 ```
 
 Make a list of all the nodes
@@ -209,8 +236,10 @@ Clear contents of tmp directory
 parallel  \
   --no-run-if-empty \
   --sshloginfile nodes.txt \
+  --max-procs 1 \
   --nonall \
   "rm -rf /tmp/*"
+
 ```
 
 The `imaging-backup-scripts` repo is private, so upload the zipped version to some location, and set the variable REPO.
@@ -225,7 +254,7 @@ Initialize environment in each machine.
 INIT_ENV="rm -rf ~/ebs_tmp && mkdir -p ~/ebs_tmp && cd ~/ebs_tmp && wget ${REPO} && unzip imaging-backup-scripts-master.zip"
 
 parallel  \
-  --delay 2.5 \
+  --delay 1 \
   --no-run-if-empty \
   --sshloginfile nodes.txt \
   --results init_env \
@@ -233,39 +262,42 @@ parallel  \
   --env PATH \
   --nonall \
   ${INIT_ENV}
+
 ```
 
 Check whether there is enough space.
 
 ```
 parallel  \
-  --delay 2.5 \
+  --delay 1 \
   --no-run-if-empty \
   --sshloginfile nodes.txt \
   --nonall \
   "df -h|grep /dev/xvda1"
+
 ```
 
 Check whether the repo has been downloaded correctly.
 
 ```
 parallel  \
-  --delay 2.5 \
+  --delay 1 \
   --no-run-if-empty \
   --sshloginfile nodes.txt \
   --nonall \
   "ls ~/ebs_tmp/imaging-backup-scripts-master"
+
 ```
 
-Run the archiving script across all the plates.
+Run the archiving script across all the plates. Note that `max-procs` refers to the number of processes *per machine*. So `max-procs 1` means that each machine on the fleet will run one process.
 
 ```
 parallel \
-  --delay 2.5 \
+  --delay 1 \
   --no-run-if-empty \
   --sshloginfile nodes.txt \
   --env PATH \
-  --max-procs ${MAXPROCS} \
+  --max-procs 1 \
   --eta \
   --joblog ${LOGDIR}/backup.log \
   --results ${LOGDIR}/backup \
@@ -275,6 +307,7 @@ parallel \
   --keep-order \
   --files \
   "cd ~/ebs_tmp/imaging-backup-scripts-master && ./aws_backup.sh --project_name \"${PROJECT_NAME}\" --batch_id \"${BATCH_ID}\" --plate_id \"{1}\" --plate_id_full \"{2}\" --tmpdir ~/ebs_tmp"
+
 ```
 
 Now continue with the regular workflow ("Check whether archiving process succeeded...")
