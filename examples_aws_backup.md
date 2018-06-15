@@ -135,6 +135,7 @@ parallel \
   --results ${LOGDIR}/backup_check \
   --files \
   check_plate {1}
+
 ```
 
 Check whether there are any errors. If they are errors, you'd need to probe further to figure out what's different. Doing a diff on the file listings is a start.
@@ -143,13 +144,14 @@ Check whether there are any errors. If they are errors, you'd need to probe furt
 find ${LOGDIR}/backup_check -name stderr -exec cat {} \;
 
 cat ${LOGDIR}/backup_check.log
+
 ```
 
 *The next few steps will delete the source files. Be sure that the backup process has been successful before doing so!*
 
 Collate scripts to delete files
 ```
-mkdir delete_s3
+rm -rf delete_s3 && mkdir delete_s3
 
 parallel \
   -a plates.csv \
@@ -159,6 +161,7 @@ parallel \
   aws s3 cp s3://imaging-platform/projects/${PROJECT_NAME}/workspace/backup/${PROJECT_NAME}_${BATCH_ID}_{1}_delete_s3.sh delete_s3/
 
 cat delete_s3/* > delete_s3.sh
+
 ```
 
 Delete the files from S3!
@@ -166,6 +169,23 @@ Delete the files from S3!
 parallel -a delete_s3.sh
 ```
 
+If you've followed the workflow below using ssh, you may choose to use the fleet to delete files:
+
+```
+parallel \
+  -a delete_s3.sh \
+  --no-run-if-empty \
+  --sshloginfile nodes.txt \
+  --env PATH \
+  --max-procs 1 \
+  --eta \
+  --joblog ${LOGDIR}/delete_s3.log \
+  --results ${LOGDIR}/delete_s3 \
+  --keep-order \
+  --files
+```
+
+If you've followed the workflow below using ssh, be sure to delete the fleet to avoid racking up a huge bill!
 
 ## Alternate workflow using parallel with ssh
 
@@ -214,6 +234,9 @@ HOSTS=`aws ec2 describe-instances --filters "Name=tag:Name,Values=imaging-backup
 Log in to each machine after turning off host key checking so that it is entered into known hosts
 
 ```
+
+rm -f ~/.ssh/known_hosts
+
 echo -n $HOSTS | \
   parallel   --delay 1 \
   --max-procs 1 \
@@ -230,7 +253,7 @@ Make a list of all the nodes
 echo -n $HOSTS | parallel -d " " echo ubuntu@{1} > nodes.txt
 ```
 
-Clear contents of tmp directory
+Clear contents of `tmp` directory in each node.
 
 ```
 parallel  \
@@ -242,13 +265,13 @@ parallel  \
 
 ```
 
-The `imaging-backup-scripts` repo is private, so upload the zipped version to some location, and set the variable REPO.
+The `imaging-backup-scripts` repo is private, so upload the zipped version to some location, and set the variable `REPO`.
 
 ```
 REPO="https://imaging-platform.s3.amazonaws.com/tmp/imaging-backup-scripts-master.zip"
 ```
 
-Initialize environment in each machine.
+Initialize environment on each node.
 
 ```
 INIT_ENV="rm -rf ~/ebs_tmp && mkdir -p ~/ebs_tmp && cd ~/ebs_tmp && wget ${REPO} && unzip imaging-backup-scripts-master.zip"
@@ -289,7 +312,7 @@ parallel  \
 
 ```
 
-Run the archiving script across all the plates. Note that `max-procs` refers to the number of processes *per machine*. So `max-procs 1` means that each machine on the fleet will run one process.
+Run the archiving script across all the plates. Note that `max-procs` refers to the number of processes *per machine*. So `max-procs 1` means that each node on the fleet will run one process.
 
 ```
 parallel \
