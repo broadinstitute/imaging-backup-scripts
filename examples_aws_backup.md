@@ -95,6 +95,7 @@ parallel \
     --plate_id "{1}" \
     --plate_id_full "{2}" \
     --tmpdir ~/ebs_tmp
+
 ```
 
 Check whether archiving process succeeded. First, define functions to check whether etags of file listings match.
@@ -183,6 +184,7 @@ parallel \
   --results ${LOGDIR}/delete_s3 \
   --keep-order \
   --files
+
 ```
 
 If you've followed the workflow below using ssh, be sure to delete the fleet to avoid racking up a huge bill!
@@ -191,12 +193,12 @@ If you've followed the workflow below using ssh, be sure to delete the fleet to 
 
 Fire up many machines. Configure `config.json` appropriately before launching.
 
-Set `TargetCapacity` to be number of machines to run in parallel. If the number of plate is less than 50, set this to the number of plates. If the number of plate is greater than 50, set this so that there are not too many idle machines sitting around towards the end. E.g. For, say, 65 plates, set `TargetCapacity` to 22. Here's one way to compute `TargetCapacity` for a batch with large number of plates.
+Set `TargetCapacity` to be number of machines to run in parallel. If the number of plate is less than 30, set this to the number of plates. If the number of plate is greater than 30, set this so that there are not too many idle machines sitting around towards the end. E.g. For, say, 65 plates, set `TargetCapacity` to 22. Here's one way to compute `TargetCapacity` for a batch with large number of plates.
 
 ```
-n = 177 # e.g. number of plates
-k_max = 50 # max no. of machine to launch
-w_max = 5 # max no. of machines that should be idle in the final iteration
+n = 136 # e.g. number of plates
+k_max = 30 # max no. of machine to launch
+w_max = 3 # max no. of machines that should be idle in the final iteration
 
 k = k_max
 
@@ -216,9 +218,13 @@ aws ec2 request-spot-fleet --spot-fleet-request-config file://config.json
 Set up key to access the machines. The key should be the same as the `KeyName` specified in `config.json`
 
 ```
+mkdir -p ~/.ssh
+
+# copy pem file to ~/.ssh/CellProfiler.pem
+
 eval "$(ssh-agent -s)"
 
-PEMFILE=/tmp/CellProfiler.pem
+PEMFILE=~/.ssh/CellProfiler.pem
 
 ssh-add ${PEMFILE}
 
