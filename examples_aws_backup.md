@@ -144,6 +144,8 @@ Check whether there are any errors. If they are errors, you'd need to probe furt
 ```
 find ${LOGDIR}/backup_check -name stderr -exec cat {} \;
 
+find ${LOGDIR}/backup_check -name stdout -exec cat {} \;
+
 cat ${LOGDIR}/backup_check.log
 
 ```
@@ -169,6 +171,8 @@ Delete the files from S3!
 ```
 parallel -a delete_s3.sh
 ```
+
+Note: This process will be slow until this is address https://github.com/aws/aws-cli/issues/3163
 
 If you've followed the workflow below using ssh, you may choose to use the fleet to delete files:
 
