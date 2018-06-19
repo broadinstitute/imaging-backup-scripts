@@ -18,7 +18,7 @@
 # The file listing of the contents of both tarballs (as they existed on S3) are stored at this location on the "cold" bucket
 #
 # s3://imaging-platform-cold/imaging_analysis/<PROJECT_NAME>/plates/<PROJECT_NAME>_<BATCH_ID>_<PLATE_ID>_file_listing_untrimmed_s3.txt
-# 
+#
 # e.g.
 # .
 # └── imaging-platform-cold
@@ -38,16 +38,16 @@
 #                 └── 2013_Gustafsdottir_PLOSONE_BBBC022_20589_images_illum_analysis.tar.gz
 #
 # Additionally, the following 3 files are stored in the "live" bucket (e.g. imaging-platform)
-# 
+#
 # s3://imaging-platform/projects/<PROJECT_NAME>/workspace/backup/<PROJECT_NAME>_<BATCH_ID>_<PLATE_ID>_file_listing_s3.txt
 # s3://imaging-platform/projects/<PROJECT_NAME>/workspace/backup/<PROJECT_NAME>_<BATCH_ID>_<PLATE_ID>_file_listing_tar.txt
 # s3://imaging-platform/projects/<PROJECT_NAME>/workspace/backup/<PROJECT_NAME>_<BATCH_ID>_<PLATE_ID>_delete_s3.sh
 #
 # The first two are file listings of the archives as they exist on S3 and in the tarball respectively. They have been
-# formatted so that they can be compared via diff or by their ETag. 
+# formatted so that they can be compared via diff or by their ETag.
 #
 # The third file has a list of awscli commands to delete the files that have been archived by this process.
-# 
+#
 # When 2013_Gustafsdottir_PLOSONE_BBBC022_20586_*.tar.gz files are unzipped like this,
 #
 # tar xzf 2013_Gustafsdottir_PLOSONE_BBBC022_20586_images_illum_analysis.tar.gz --strip-components=1
@@ -76,7 +76,7 @@
 #     --plate_id_full "20586" \
 #     --plate_id 20586 \
 #     --tmpdir ~/ebs_tmp
-# 
+#
 # Note: In the example above, `plate_id` and `plate_id_full` are the same but this is not always true.
 # E.g. The `plate_id` for "BR00092655__2017-12-10T12_48_16-Measurement 1" is "BR00092655"
 
@@ -210,7 +210,36 @@ aws s3 sync "${s3_prefix}/workspace/backend/${batch_id}/${plate_id}" "workspace/
 
 cd ../../
 
+function verify_object_does_not_exist {
+    s3_location=$1
+
+    xbucket=$(python -c "from urlparse import urlparse; import sys; o = urlparse(sys.argv[1]); print(o.netloc)" ${s3_location})
+
+    xkey=$(python -c "from urlparse import urlparse; import sys; o = urlparse(sys.argv[1]); print(o.path).lstrip('/')" ${s3_location})
+
+    trap '' ERR
+
+    aws s3api head-object --bucket ${xbucket} --key ${xkey} 2> /dev/null
+
+    exit_code=$?
+
+    trap 'exit' ERR
+
+    if [ "$exit_code" == "0" ]; then
+      echo "Object already exists: " ${s3_location}
+      exit 1
+    fi
+
+}
+
+
 function process_tar_file {
+
+    archive_location=${s3_cold_prefix}/${tar_file}.tar.gz
+
+    # check whether file already exits, in which case, error out
+
+    verify_object_does_not_exist ${archive_location}
 
     tar_file=$1
 
@@ -231,7 +260,7 @@ function process_tar_file {
 
     # copy to S3
 
-    aws s3 cp ${tar_file}.tar.gz ${s3_cold_prefix}/${tar_file}.tar.gz
+    aws s3 cp ${tar_file}.tar.gz ${archive_location}
 
     # check whether local ETag and remote Etag match
     # https://github.com/antespi/s3md5
@@ -243,7 +272,7 @@ function process_tar_file {
         etag_local=$(cat ${tar_file}.md5 | cut -d" " -f1)
     else
         multipart_chunksize=$(${script_dir}/get_multipart_chunksize ${tar_file}.tar.gz)
-        
+
         etag_local=$(${script_dir}/s3md5 ${multipart_chunksize} ${tar_file}.tar.gz)
     fi
 
