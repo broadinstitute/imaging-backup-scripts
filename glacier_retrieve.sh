@@ -1,4 +1,33 @@
-# Retrieve data from Glacier
+# Restore data from Glacier
+
+# Assumes that the tarballs are created using aws_backup.sh
+# Usage example:
+#
+# Restore only images of a plate
+#
+#      ./glacier_restore.sh --project_name 2013_Gustafsdottir_PLOSONE --batch_id BBBC022 --plate_id 20586 --get_images
+#
+# Restore only backend of a plate
+#
+#      ./glacier_restore.sh --project_name 2013_Gustafsdottir_PLOSONE --batch_id BBBC022 --plate_id 20586 --get_backend
+#
+# Restore both, images and backend, of a plate
+#
+#      ./glacier_restore.sh --project_name 2013_Gustafsdottir_PLOSONE --batch_id BBBC022 --plate_id 20586 --get_backend --get_images
+#
+# Only check status, but don't restore, images and backend of a plate
+#
+#      ./glacier_restore.sh --project_name 2013_Gustafsdottir_PLOSONE --batch_id BBBC022 --plate_id 20586 --get_backend --get_images --check_status
+#
+# Check status of restoring backend for a list of plates
+#
+#      echo "20586 20587" | tr " " "\n" > list_of_plates.txt
+#
+#      parallel -a list_of_plates.txt ./glacier_restore.sh --project_name 2013_Gustafsdottir_PLOSONE --batch_id BBBC022 --plate_id {1} --get_backend --check_status
+#
+
+
+
 
 progname=`basename $0`
 
@@ -15,10 +44,6 @@ do
         batch_id="$2"
         shift
         ;;
-        --plate_id_full)
-        plate_id_full="$2"
-        shift
-        ;;
         --plate_id)
         plate_id="$2"
         shift
@@ -29,6 +54,18 @@ do
         ;;
         --cold_bucket)
         cold_bucket="$2"
+        shift
+        ;;
+        --get_images)
+        get_images=YES
+        shift
+        ;;
+        --get_backend)
+        get_backend=YES
+        shift
+        ;;
+        --check_status)
+        check_status=YES
         shift
         ;;
         -t|--tmpdir)
@@ -42,38 +79,64 @@ do
     shift
 done
 
-# project_name=2013_Gustafsdottir_PLOSONE
-# batch_id=BBBC022
-# plate_id_full="20586"
-# plate_id=20586
-# tmpdir=~/ebs_tmp
+# -------------
+project_name=2013_Gustafsdottir_PLOSONE
+batch_id=BBBC022
+plate_id=20586
+get_images=NO
+get_backend=YES
+check_status=YES
+# -------------
 
-bucket="${bucket:-imaging-platform}"
 cold_bucket="${cold_bucket:-imaging-platform-cold}"
-tmpdir="${tmpdir:-/tmp}"
+get_images="${get_images:-NO}"
+get_backend="${get_backend:-NO}"
+check_status="${check_status:-NO}"
 
-# s3://imaging-platform-cold/imaging_analysis/<PROJECT_NAME>/plates/<PROJECT_NAME>_<BATCH_ID>_<PLATE_ID>_images_illum_analysis.tar.gz
-
-BUCKET=imaging-platform-cold
-PROJECT_NAME=2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad
-BATCH_ID=2016_04_01_a549_48hr_batch1
-PLATE_ID=SQ00014812
-
-tarball_1_prefix=imaging_analysis/${PROJECT_NAME}/plates/${PROJECT_NAME}_${BATCH_ID}_${PLATE_ID}_images_illum_analysis
-
-tarball_2_prefix=imaging_analysis/${PROJECT_NAME}/plates/${PROJECT_NAME}_${BATCH_ID}_${PLATE_ID}_backend
-
+tarball_1_prefix=imaging_analysis/${project_name}/plates/${project_name}_${batch_id}_${plate_id}_images_illum_analysis
+tarball_2_prefix=imaging_analysis/${project_name}/plates/${project_name}_${batch_id}_${plate_id}_backend
 tarball_1=${tarball_1_prefix}.tar.gz
 tarball_2=${tarball_2_prefix}.tar.gz
 tarball_1_md5=${tarball_1_prefix}.md5
 tarball_2_md5=${tarball_2_prefix}.md5
 
-aws s3 ls s3://${BUCKET}/${tarball_1}
-aws s3 ls s3://${BUCKET}/${tarball_2}
-aws s3 ls s3://${BUCKET}/${tarball_1_md5}
-aws s3 ls s3://${BUCKET}/${tarball_2_md5}
+aws s3 ls s3://${cold_bucket}/${tarball_1}
+aws s3 ls s3://${cold_bucket}/${tarball_2}
+aws s3 ls s3://${cold_bucket}/${tarball_1_md5}
+aws s3 ls s3://${cold_bucket}/${tarball_2_md5}
 
+if [[ ${get_images} == "YES" ]];then
 
-aws s3api restore-object --bucket ${BUCKET} --key ${tarball_1_md5} --restore-request '{"Days":7,"GlacierJobParameters":{"Tier":"Standard"}}'
+    echo "Get images ..."
 
-aws s3api head-object --bucket ${BUCKET} --key ${tarball_1_md5}
+    if [[ ${check_status} == "NO" ]];then
+
+        aws s3api restore-object --bucket ${BUCKET} --key ${tarball_1_md5} --restore-request '{"Days":7,"GlacierJobParameters":{"Tier":"Standard"}}'
+
+        aws s3api restore-object --bucket ${BUCKET} --key ${tarball_1} --restore-request '{"Days":7,"GlacierJobParameters":{"Tier":"Standard"}}'
+
+    fi
+
+    aws s3api head-object --bucket ${BUCKET} --key ${tarball_1_md5}
+
+    aws s3api head-object --bucket ${BUCKET} --key ${tarball_1}
+
+fi
+
+if [[ ${get_backend} == "YES" ]];then
+
+    echo "Get backend ..."
+
+    if [[ ${check_status} == "NO" ]];then
+
+        aws s3api restore-object --bucket ${BUCKET} --key ${tarball_2_md5} --restore-request '{"Days":7,"GlacierJobParameters":{"Tier":"Standard"}}'
+
+        aws s3api restore-object --bucket ${BUCKET} --key ${tarball_2} --restore-request '{"Days":7,"GlacierJobParameters":{"Tier":"Standard"}}'
+    fi
+
+    aws s3api head-object --bucket ${BUCKET} --key ${tarball_2_md5}
+
+    aws s3api head-object --bucket ${BUCKET} --key ${tarball_2}
+
+fi
+
