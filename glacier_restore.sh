@@ -132,7 +132,7 @@ if [[ ${get_images} == "YES" ]];then
 
     aws s3api head-object --bucket ${cold_bucket} --key ${tarball_1}
     
-    echo Download:s3://${cold_bucket}/{tarball_1}
+    echo Download:s3://${cold_bucket}/${tarball_1}
 
 fi
 
@@ -152,7 +152,7 @@ if [[ ${get_backend} == "YES" ]];then
 
     aws s3api head-object --bucket ${cold_bucket} --key ${tarball_2}
 
-    echo Download:s3://${cold_bucket}/{tarball_2}
+    echo Download:s3://${cold_bucket}/${tarball_2}
 
 fi
 
