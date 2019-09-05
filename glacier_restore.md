@@ -1,4 +1,8 @@
-Clone  this repo and then
+# Retriving data from Glacier
+
+These instructions assume that the project was archived using `aws_backup.sh`
+
+Clone this repo and then
 
 ```sh
 cd imaging-backup-scripts
