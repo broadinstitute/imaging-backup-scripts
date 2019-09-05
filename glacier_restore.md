@@ -1,23 +1,17 @@
-Clone the repository into the software folder on EFS from the following link
-
-https://github.com/broadinstitute/imaging-backup-scripts.git
+Clone  this repo and then
 
 ```sh
 cd imaging-backup-scripts
 ```
 
-define variables
+Define variables
 
 ```sh
 PROJECT_NAME=2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad
 BATCH_ID=2016_04_01_a549_48hr_batch1
 ```
 
-Next, restore the files from Glacier. 
-
-
-Next, run the retrieval process (remove the `--check_status` flag). 
-
+Run the retrieval process. 
 In this example, we retrieve only the backend (`--get_backend`).
 
 ```sh
