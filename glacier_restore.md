@@ -1,51 +1,94 @@
-1: Clone the repository into the software folder on EFS from the following link
+Clone the repository into the software folder on EFS from the following link
 
 https://github.com/broadinstitute/imaging-backup-scripts.git
 
-2:cd imaging-backup-scripts
+```sh
+cd imaging-backup-scripts
+```
 
-3: Define Variables
-Example:
-project_name = 2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad
-batch_ID = 2016_04_01_a549_48hr_batch1
+define variables
 
-4: This step will first unlock backend files to later available for download from Glacier
+```sh
+PROJECT_NAME=2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad
+BATCH_ID=2016_04_01_a549_48hr_batch1
+```
 
-parallel 
---results restore 
--a list_of_plates.txt 
-./glacier_restore.sh 
---project_name ${PROJECT_NAME} 
---batch_id ${BATCH_ID} 
---plate_id {1}
---get_backend 
---check_status # Note remove this flag when retrieving files from Glacier
+Next, restore the files from Glacier. 
 
-Output of this step are logfiles "stdout" which are stored in the following path restore/1/stdout
 
-5: Download backend files from Glacier
+Next, run the retrieval process (remove the `--check_status` flag). 
 
-1st Step (To collect URLs)
+In this example, we retrieve only the backend (`--get_backend`).
 
-cd "imaging-backup-scripts"
-./get_archive_urls.sh --logpath "Userdefined Path to logfiles" --plates "Userdefined list_of_plates.txt"
-Note: All URLs will be downloaded in an output file name "url_list.txt"
+```sh
+parallel \
+  --results restore \
+  -a list_of_plates.txt \
+  ./glacier_restore.sh \
+  --project_name ${PROJECT_NAME} \
+  --batch_id ${BATCH_ID} \
+  --plate_id {1} \
+  --get_backend
+```
 
-2nd Step (Downloading Files from URLs)
+The retrieval may take several hours. Check status again in a few hours and ensure that all files are available. To do so, run the same command as above but with the `--check_status` flag:
 
-parallel -a url_list.txt aws s3 cp .
+```sh
+parallel \
+  --results restore \
+  -a list_of_plates.txt \
+  ./glacier_restore.sh \
+  --project_name ${PROJECT_NAME} \
+  --batch_id ${BATCH_ID} \
+  --plate_id {1} \
+  --get_backend \
+  --check_status
+```
 
-Alternatively, following strategy which bypass 1st step also works
+This creates an stdout file per plate at `restore/1/<plate_id>/stdout`. 
+If a request has been made, you'll receive a response (in `stdout`) similar to the following if the restore is still in progress
 
-parallel -a list_of_plates.txt aws s3 cp s3://imaging-platform-cold/imaging_analysis/${PROJECT_NAME}/plates/${PROJECT_NAME}${BATCH_ID}{1}_backend.tar.gz .
+```
+> "Restore": "ongoing-request=\"true\""
+> "StorageClass": "GLACIER"
+```
 
-6: UZip tar.gz files
+After the restore is complete, the response is similar to the following
 
+```
+"Restore": "ongoing-request=\"false\", expiry-date=\"Sun, 13 Aug 2017 00:00:00 GMT\""
+```
+
+If no request has been made, "Restore" key will be absent
+
+Once all files have been restored, download the backend files from Glacier.
+
+First, collect the URLs
+
+```sh
+parallel -a list_of_plates.txt "grep Download restore/1/{1}/stdout|sed s,Download:,,1" > url_list.txt
+```
+
+Next, download these files
+
+```sh
+parallel -a url_list.txt aws s3 cp {1} .
+```
+
+Uncompress the files
+
+```sh
 parallel -a list_of_plates.txt tar -xvzf ${PROJECT_NAME}${BATCH_ID}{1}_backend.tar.gz
+```
 
-7: Sync to S3 bucket
+Sync to S3 bucket (if you want to restore to the original location on `s3://imaging-platform`).
 
-parallel -a list_of_plates.txt 
-aws s3 sync 
-${PROJECT_NAME}${BATCH_ID}{1}/${PROJECT_NAME}/workspace/backend/${BATCH_ID}/ 
-s3://${BUCKET}/projects/${PROJECT_NAME}/workspace/backend/${BATCH_ID}/
+**WARNING: Be cautious because this step overwrites files at the destination**
+
+```sh
+parallel \
+  -a list_of_plates.txt \
+  aws s3 sync \
+  ${PROJECT_NAME}${BATCH_ID}{1}/${PROJECT_NAME}/workspace/backend/${BATCH_ID}/ \
+  s3://imaging-platform/projects/${PROJECT_NAME}/workspace/backend/${BATCH_ID}/
+```
