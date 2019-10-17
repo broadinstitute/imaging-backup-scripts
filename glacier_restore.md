@@ -1,4 +1,4 @@
-# Retriving data from Glacier
+# Retrieving data from Glacier
 
 These instructions assume that the project was archived using `aws_backup.sh`
 
