@@ -64,13 +64,23 @@ Once all files have been restored, download the backend files from Glacier.
 First, collect the URLs
 
 ```sh
-parallel -a list_of_plates.txt "grep Download restore/1/{1}/stdout|sed s,Download:,,1" > url_list.txt
+parallel -a list_of_plates.txt "grep ^Download restore/1/{1}/stdout|sed s,Download:,,1" > url_list.txt
+```
+
+Do the same for the MD5 checksum files
+
+```sh
+parallel -a list_of_plates.txt "grep MD5Download restore/1/{1}/stdout|sed s,MD5Download:,,1" > md5_url_list.txt
 ```
 
 Next, download these files
 
 ```sh
 parallel -a url_list.txt aws s3 cp {1} .
+```
+
+```sh
+parallel -a md5_url_list.txt aws s3 cp {1} .
 ```
 
 Uncompress the files
