@@ -100,8 +100,7 @@ Sync to S3 bucket (if you want to restore to the original location on `s3://imag
 
 TODO: Document instructions to verify md5
 
-![WARNING](https://en.wikipedia.org/wiki/File:OOjs_UI_icon_alert-warning.svg#/media/File:OOjs_UI_icon_alert-destructive.svg
- "")
+![WARNING](https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/OOjs_UI_icon_alert-destructive.svg/1920px-OOjs_UI_icon_alert-destructive.svg.png "")
 
 **WARNING: Be cautious because this step overwrites files at the destination**
 
