@@ -98,6 +98,8 @@ parallel -a list_of_plates.txt tar -xvzf ${PROJECT_NAME}${BATCH_ID}{1}_backend.t
 
 Sync to S3 bucket (if you want to restore to the original location on `s3://imaging-platform`).
 
+TODO: Document instructions to verify md5
+
 **WARNING: Be cautious because this step overwrites files at the destination**
 
 ```sh
