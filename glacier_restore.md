@@ -16,7 +16,7 @@ BATCH_ID=2016_04_01_a549_48hr_batch1
 ```
 
 Run the retrieval process. 
-In this example, we retrieve only the backend (`--get_backend`).
+In this example, we retrieve only the backend (`--get_backend`). To restore only images, use `--get_images`. To restore both, use both flags.
 
 ```sh
 parallel \
