@@ -15,7 +15,14 @@ PROJECT_NAME=2015_10_05_DrugRepurposing_AravindSubramanian_GolubLab_Broad
 BATCH_ID=2016_04_01_a549_48hr_batch1
 ```
 
+Create a list of plates to be restored. Here, use the shortened name that is used throughout the rest of the profiling workflow e.g. use `SQ00015147`, not `SQ00015147__2016-05-17T07_49_53-Measurement1`:
+
+```
+echo "SQ00015147" > list_of_plates.txt
+```
+
 Run the retrieval process. 
+
 In this example, we retrieve only the backend (`--get_backend`). To restore only images, use `--get_images`. To restore both, use both flags.
 
 ```sh
