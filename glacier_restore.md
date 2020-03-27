@@ -128,11 +128,21 @@ parallel -a list_of_plates.txt tar -xvzf ${PROJECT_NAME}_${BATCH_ID}_{1}_${TARSE
 Verify the md5
 
 ```sh
-parallel -a list_of_plates.txt "md5sum ${PROJECT_NAME}_${BATCH_ID}_{1}_${TARSET}.tar.gz > ${PROJECT_NAME}_${BATCH_ID}_{1}_${TARSET}.md5.local"
+parallel -a list_of_plates.txt \
+  "md5sum ${PROJECT_NAME}_${BATCH_ID}_{1}_${TARSET}.tar.gz > ${PROJECT_NAME}_${BATCH_ID}_{1}_${TARSET}.md5.local"
 ```
 
-Sync to S3 bucket (if you want to restore to the original location on `s3://imaging-platform`).
 
+```sh
+parallel -a list_of_plates.txt \
+  diff \
+  ${PROJECT_NAME}_${BATCH_ID}_{1}_${TARSET}.md5.local \
+  ${PROJECT_NAME}_${BATCH_ID}_{1}_${TARSET}.md5 > md5_diffs.txt
+```
+
+Inspect `md5_diffs.txt` and confirm that there are no diffs.
+
+Sync to S3 bucket (if you want to restore to the original location on `s3://imaging-platform`).
 
 **WARNING: Be cautious because this step overwrites files at the destination**
 
