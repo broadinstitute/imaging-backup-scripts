@@ -134,6 +134,8 @@ if [[ ${get_images} == "YES" ]];then
     
     echo Download:s3://${cold_bucket}/${tarball_1}
 
+    echo MD5Download:s3://${cold_bucket}/${tarball_1_md5}
+
 fi
 
 
@@ -154,6 +156,8 @@ if [[ ${get_backend} == "YES" ]];then
 
     echo Download:s3://${cold_bucket}/${tarball_2}
 
+    echo MD5Download:s3://${cold_bucket}/${tarball_2_md5}
+    
 fi
 
 
