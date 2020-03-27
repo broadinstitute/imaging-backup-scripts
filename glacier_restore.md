@@ -142,6 +142,36 @@ For backend
 parallel \
   -a list_of_plates.txt \
   aws s3 sync \
-  ${PROJECT_NAME}${BATCH_ID}{1}/${PROJECT_NAME}/workspace/backend/${BATCH_ID}/ \
+  ${PROJECT_NAME}_${BATCH_ID}_{1}/${PROJECT_NAME}/workspace/backend/${BATCH_ID}/ \
   s3://imaging-platform/projects/${PROJECT_NAME}/workspace/backend/${BATCH_ID}/
+```
+
+For analysis:
+
+```sh
+parallel \
+  -a list_of_plates.txt \
+  aws s3 sync \
+  ${PROJECT_NAME}_${BATCH_ID}_{1}/${PROJECT_NAME}/workspace/analysis/${BATCH_ID}/ \
+  s3://imaging-platform/projects/${PROJECT_NAME}/workspace/analysis/${BATCH_ID}/
+```
+
+For images:
+
+```sh
+parallel \
+  -a list_of_plates.txt \
+  aws s3 sync \
+  ${PROJECT_NAME}_${BATCH_ID}_{1}/${PROJECT_NAME}/${BATCH_ID}/images/ \
+  s3://imaging-platform/projects/${PROJECT_NAME}/${BATCH_ID}/images/
+```
+
+For illum:
+
+```sh
+parallel \
+  -a list_of_plates.txt \
+  aws s3 sync \
+  ${PROJECT_NAME}_${BATCH_ID}_{1}/${PROJECT_NAME}/${BATCH_ID}/illum/ \
+  s3://imaging-platform/projects/${PROJECT_NAME}/${BATCH_ID}/illum/
 ```
