@@ -93,7 +93,11 @@ parallel -a md5_url_list.txt aws s3 cp {1} .
 Uncompress the files
 
 ```sh
-parallel -a list_of_plates.txt tar -xvzf ${PROJECT_NAME}${BATCH_ID}{1}_backend.tar.gz
+parallel -a list_of_plates.txt tar -xvzf ${PROJECT_NAME}_${BATCH_ID}_{1}_backend.tar.gz
+```
+
+```sh
+parallel -a list_of_plates.txt tar -xvzf ${PROJECT_NAME}_${BATCH_ID}_{1}_images_illum_analysis.tar.gz
 ```
 
 Sync to S3 bucket (if you want to restore to the original location on `s3://imaging-platform`).
