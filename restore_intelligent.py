@@ -1,6 +1,37 @@
+import csv
+import json
+import time
+from functools import partial
 import boto3
+from tqdm.contrib.concurrent import thread_map
 
-def bulk_restore(bucket,prefix,filter_in=None,filter_out=None,tier='Standard'):
+def restore_object(key, bucket, tier):
+    """
+    Check Object status before requesting the restoration.
+    returns a dict with key and the status of the request. If there is an error
+    message and object metadata is also included in the response.
+    """
+    client = boto3.session.Session().client("s3")  
+    metadata = client.head_object(Bucket=bucket, Key=key)
+    headers = metadata["ResponseMetadata"]["HTTPHeaders"]
+    if "x-amz-archive-status" not in headers:
+        return {"key": key, "status": "RESTORED"}
+    if "Restore" in metadata:
+        restore_tag = metadata["Restore"]
+        if "expiry-date" in restore_tag:
+            return {"key": key, "status": "RESTORED"}
+        if 'ongoing-request="true"' in restore_tag:
+            return {"key": key, "status": "IN_PROGRESS"}
+    try:
+        client.restore_object(Bucket=bucket, Key=key, RestoreRequest={'GlacierJobParameters':{'Tier':tier}})
+        return {"key": key, "status": "REQUESTED"}
+    except Exception as ex:
+        return {"key": key,
+                "status": "ERROR",
+                "message": {str(ex)},
+                "metadata": json.dumps(metadata, default=str)}
+
+def bulk_restore(bucket,prefix,filter_in=None,filter_out=None,tier='Standard',max_workers=8,logfile='output.csv'):
     """
     Bulk restore a bunch of things in S3 that are in the IntelligentTiering class.
     You need to pass in a bucket and a prefix (aka file OR folder).
@@ -19,7 +50,7 @@ def bulk_restore(bucket,prefix,filter_in=None,filter_out=None,tier='Standard'):
     file_list = []
     try:
         for page in pages:
-            file_list += [x["Key"] for x in page["Contents"]]
+            file_list += [x["Key"] for x in page["Contents"] if x["StorageClass"] == "INTELLIGENT_TIERING"]
     except KeyError:
         print ("No files in prefix given.")
         return
@@ -40,16 +71,20 @@ def bulk_restore(bucket,prefix,filter_in=None,filter_out=None,tier='Standard'):
             for eachfilter in filter_out:
                 file_list = [x for x in file_list if eachfilter not in x]
     print(f"{len(file_list)} total files remain post-filtering")
-    count = 0
-    for key in file_list:
-        try:
-            client.restore_object(Bucket=bucket, Key=key, RestoreRequest={'GlacierJobParameters':{'Tier':tier}})
-        except:
-            print(f"Could not restore object {key}")
-        count += 1
-        if count %100 ==0:
-            print(f"Sent {count} restore requests")
-    print('Sent all restore requests')
+    outputs = thread_map(partial(restore_object, tier=tier, bucket=bucket),
+                         file_list, max_workers=max_workers)
+    counts = {'REQUESTED': 0, 'IN_PROGRESS': 0, 'RESTORED': 0, 'ERROR': 0}
+    with open(logfile, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(
+                csvfile, fieldnames=["key", "status", "message", "metadata"])
+        writer.writeheader()
+        for output in outputs:
+            counts[output["status"]] += 1
+            writer.writerow(output)
+
+    for status, count in counts.items():
+        print(f'{status:<14} {count}')
+    print(f'For more info check {logfile}')
 
 if __name__ == '__main__':
     import argparse
@@ -59,6 +94,9 @@ if __name__ == '__main__':
     parser.add_argument('--filter_in',default=None,nargs='+',help='One or more strings to specify a subset of objects to restore. If >1, any object with ANY filter will be restored')
     parser.add_argument('--filter_out',default=None,nargs='+',help='One or more strings to specify a subset of objects not to restore. If >1, any object with ANY filter will be removed from the list to restore')
     parser.add_argument('--tier',default='Standard',help='Retrieval tier, only change to Expedited for small numbers of files (<1K) or emergencies')
+    parser.add_argument('--max_workers',default=8,help='Number of parallel AWS requests', type=int)
+    parser.add_argument('--logfile',default='output.csv',help='Path to save the status log in csv format')
     args = parser.parse_args()
     
-    bulk_restore(args.bucket,args.prefix,args.filter_in,args.filter_out,args.tier)
+    bulk_restore(args.bucket,args.prefix,args.filter_in,args.filter_out,
+                 args.tier,args.max_workers,args.logfile)
