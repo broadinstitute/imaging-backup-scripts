@@ -29,7 +29,7 @@ Run this to check on status
 aws s3api \
   head-object \
   --bucket BUCKET-NAME \
-  --key PREFIX
+  --key KEY
 ```
 
 `ongoing-request` will equal `false` when the data is ready to be retrieved
