@@ -46,7 +46,8 @@ aws s3api \
     "Metadata": {},
     "StorageClass": "INTELLIGENT_TIERING"
 }
+```
 
-2. For restoring a whole folder, use the [restore_intelligent.py](https://github.com/broadinstitute/imaging-backup-scripts/blob/master/restore_intelligent.py) script.
+2. For restoring a whole folder, use the [restore_intelligent.py](https://github.com/broadinstitute/imaging-backup-scripts/blob/master/restore_intelligent.py) script. See the comments in the script for notes on retrieval cost.
 
 
