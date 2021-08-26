@@ -50,14 +50,15 @@ aws s3api \
 
 2. For restoring a whole folder, use the [restore_intelligent.py](https://github.com/broadinstitute/imaging-backup-scripts/blob/master/restore_intelligent.py) script. See the comments in the script for notes on retrieval cost.
 
-Also see our discussions on Slack
-- https://broadinstitute.slack.com/archives/C3QFX04P7/p1627496601111300
+### Slack discussions
+
+https://broadinstitute.slack.com/archives/C3QFX04P7/p1627496601111300
 
 > We've now had some data in Intelligent Tiering long enough that it needs to be restored!
 Unfortunately, because of the way object stores work, while you can go into the AWS console and restore one file with a point and click, you can't do that with 'folders', because 'folders' in AWS aren't real. Our previous Glacier restore scripts a) were configured to only the file types we typically Glaciered (md5 or .tgz)  b) wouldn't work directly out of the box even so because Intelligent Tiering doesn't restore for just X days and c) weren't super full-featured in terms of only letting us grab subsets of things anyway. I've added a new restoration script to our imaging-backup-scripts repo; right now it only supports Intelligent Tiering restoration but if we think we want to in the future it could pretty easily add more features and/or get it to work on Glacier too. https://github.com/broadinstitute/imaging-backup-scripts/blob/master/restore_intelligent.py
 
 
-- https://broadinstitute.slack.com/archives/C3QFX04P7/p1627496974114300
+https://broadinstitute.slack.com/archives/C3QFX04P7/p1627496974114300
 
 > You'll want to do this the night before you need to access any files that have not been used by anyone on AWS in >3 months, since restoration can "on average" take 3-5 hours; if you only need a handful of files you can use the expedited retrieval option, which takes only a few minutes, but in that case you likely want to just use the console anyway.  Expedited retrieval is $300/plate for CellPainting data (vs 0 in standard), so please do use Standard for large data sets unless there is a very good reason not to!
 
