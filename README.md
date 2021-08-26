@@ -50,4 +50,7 @@ aws s3api \
 
 2. For restoring a whole folder, use the [restore_intelligent.py](https://github.com/broadinstitute/imaging-backup-scripts/blob/master/restore_intelligent.py) script. See the comments in the script for notes on retrieval cost.
 
+Also see our discussions on Slack
+- https://broadinstitute.slack.com/archives/C3QFX04P7/p1627496601111300
+- https://broadinstitute.slack.com/archives/C3QFX04P7/p1627496974114300
 
