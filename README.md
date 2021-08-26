@@ -19,7 +19,7 @@ There are two approaches for restoring such files.
 aws s3api \
   restore-object \
   --bucket BUCKET-NAME \
-  --key PREFIX \
+  --key KEY \
   --restore-request GlacierJobParameters={"Tier"="Standard"}
 ```
 
