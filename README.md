@@ -47,6 +47,7 @@ aws s3api \
     "StorageClass": "INTELLIGENT_TIERING"
 }
 ```
+KEY is the unique object identifier for the file you would like to restore. It can be found by clicking on the file in the console so that it shows the Object Overview. It resembles a path with folders even though S3 uses object storage. e.g. projects/PROJECT_NAME/workspace/metadata/BATCH_NAME/metadata.json
 
 2. For restoring a whole folder, use the [restore_intelligent.py](https://github.com/broadinstitute/imaging-backup-scripts/blob/master/restore_intelligent.py) script. See the comments in the script for notes on retrieval cost.
 
