@@ -40,8 +40,9 @@ def summarize_and_log_results(outputs,logfile):
     """
     error_list = []
     counts = {'REQUESTED': 0, 'IN_PROGRESS': 0, 'RESTORED': 0, 'ERROR': 0}
-    if not os.path.exists(os.path.dirname(logfile)):
-        os.makedirs(os.path.dirname(logfile),exist_ok=True)
+    if os.path.dirname(logfile)!= '':
+        if not os.path.exists(os.path.dirname(logfile)):
+            os.makedirs(os.path.dirname(logfile),exist_ok=True)
     with open(logfile, 'w', newline='') as csvfile:
         writer = csv.DictWriter(
                 csvfile, fieldnames=["key", "status", "message", "metadata"])
