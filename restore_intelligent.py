@@ -118,6 +118,7 @@ def bulk_restore(bucket,prefix,is_logfile=False,filter_in=None,filter_out=None,t
             for eachfilter in filter_out:
                 file_list = [x for x in file_list if eachfilter not in x]
     print(f"{len(file_list)} total files remain post-filtering")
+    file_list.sort() #It is nice to have this in order in case you need to try to manually figure out where it left off/how far it has gotten
     outputs = thread_map(partial(restore_object, tier=tier, bucket=bucket),
                          file_list, max_workers=max_workers)
     error_list = summarize_and_log_results(outputs,logfile)
