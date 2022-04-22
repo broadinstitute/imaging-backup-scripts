@@ -81,14 +81,17 @@ def bulk_restore(bucket,prefix,is_logfile=False,filter_in=None,filter_out=None,t
     file_list = []
     if not is_logfile:
         client = boto3.client('s3')
+        other_tier_count = 0
         paginator = client.get_paginator("list_objects_v2")
         pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
         try:
             for page in pages:
                 file_list += [x["Key"] for x in page["Contents"] if x["StorageClass"] == "INTELLIGENT_TIERING"]
+                other_tier_count += len([x["Key"] for x in page["Contents"] if x["StorageClass"] != "INTELLIGENT_TIERING"])
         except KeyError:
             print ("No files in prefix given.")
             return
+        print(f"{other_tier_count} non-Intelligent Tiering files that do not need restoration")
         print(f"{len(file_list)} total files found pre-filtering")
     else:
         count = -1
