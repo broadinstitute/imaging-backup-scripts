@@ -126,14 +126,11 @@ def bulk_restore(bucket,prefix,is_logfile=False,filter_in=None,filter_out=None,t
     outputs = thread_map(partial(restore_object, tier=tier, bucket=bucket),
                          file_list, max_workers=max_workers)
     error_list = summarize_and_log_results(outputs,logfile)
-    if retry_once:
-        if len(error_list)==0:
-            return
-        else:
-            print(f"Retrying {len(error_list)} errored files")
-            retry_outputs = thread_map(partial(restore_object, tier=tier, bucket=bucket),
-                         error_list, max_workers=max_workers)
-            summarize_and_log_results(retry_outputs,logfile[:-4]+'_retried.csv')
+    if retry_once and len(error_list) > 0:
+        print(f"Retrying {len(error_list)} errored files")
+        retry_outputs = thread_map(partial(restore_object, tier=tier, bucket=bucket),
+                     error_list, max_workers=max_workers)
+        summarize_and_log_results(retry_outputs,logfile[:-4]+'_retried.csv')
 
 
 if __name__ == '__main__':
