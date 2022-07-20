@@ -284,14 +284,18 @@ function process_tar_file {
       echo "Local  =" $etag_local
       exit 1
     fi
+    
+    echo ${etag_remote} > ${tar_file}.etag   
 
-    # copy md5 to remote
+    # copy md5 and etag to remote
 
     aws s3 cp ${tar_file}.md5 ${s3_cold_prefix}/${tar_file}.md5
 
-    # remove local cache of tarball and md5
+    aws s3 cp ${tar_file}.etag ${s3_cold_prefix}/${tar_file}.etag
 
-    rm -rf ${tar_file}.tar.gz ${tar_file}.md5
+    # remove local cache of tarball and md5 and etag
+
+    rm -rf ${tar_file}.tar.gz ${tar_file}.md5 ${tar_file}.etag
 
 }
 
