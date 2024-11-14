@@ -6,13 +6,17 @@ from functools import partial
 import boto3
 from tqdm.contrib.concurrent import thread_map
 
-def restore_object(key, bucket, tier):
+def restore_object(key, bucket, tier,profile=""):
     """
     Check Object status before requesting the restoration.
     returns a dict with key and the status of the request. If there is an error
     message and object metadata is also included in the response.
     """
-    client = boto3.session.Session().client("s3")
+    if profile:
+        session = boto3.Session(profile_name=profile)
+        client = session.client('s3')
+    else:
+        client = boto3.session.Session().client("s3")
     metadata = client.head_object(Bucket=bucket, Key=key)
     headers = metadata["ResponseMetadata"]["HTTPHeaders"]
     if "x-amz-archive-status" not in headers:
@@ -57,7 +61,7 @@ def summarize_and_log_results(outputs,logfile):
     print(f'For more info check {logfile}')
     return error_list
 
-def bulk_restore(bucket,prefix,is_logfile=False,filter_in=None,filter_out=None,tier='Standard',max_workers=8,logfile='output.csv',retry_once=False):
+def bulk_restore(bucket,prefix,is_logfile=False,filter_in=None,filter_out=None,tier='Standard',max_workers=8,logfile='output.csv',retry_once=False,profile=""):
     """
     Bulk restore a bunch of things in S3 that are in the IntelligentTiering class.
     You need to pass in a bucket and either a) a prefix (aka file OR folder) or b) a file name (see below).
@@ -80,7 +84,11 @@ def bulk_restore(bucket,prefix,is_logfile=False,filter_in=None,filter_out=None,t
     """
     file_list = []
     if not is_logfile:
-        client = boto3.client('s3')
+        if profile:
+            session = boto3.Session(profile_name=profile)
+            client = session.client('s3')
+        else:
+            client = boto3.client('s3')
         other_tier_count = 0
         paginator = client.get_paginator("list_objects_v2")
         pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
@@ -123,12 +131,12 @@ def bulk_restore(bucket,prefix,is_logfile=False,filter_in=None,filter_out=None,t
                 file_list = [x for x in file_list if eachfilter not in x]
     print(f"{len(file_list)} total files remain post-filtering")
     file_list.sort() #It is nice to have this in order in case you need to try to manually figure out where it left off/how far it has gotten
-    outputs = thread_map(partial(restore_object, tier=tier, bucket=bucket),
+    outputs = thread_map(partial(restore_object, tier=tier, bucket=bucket, profile=profile),
                          file_list, max_workers=max_workers)
     error_list = summarize_and_log_results(outputs,logfile)
     if retry_once and len(error_list) > 0:
         print(f"Retrying {len(error_list)} errored files")
-        retry_outputs = thread_map(partial(restore_object, tier=tier, bucket=bucket),
+        retry_outputs = thread_map(partial(restore_object, tier=tier, bucket=bucket, profile=profile),
                      error_list, max_workers=max_workers)
         summarize_and_log_results(retry_outputs,logfile[:-4]+'_retried.csv')
 
@@ -145,7 +153,8 @@ if __name__ == '__main__':
     parser.add_argument('--max_workers',default=8,help='Number of parallel AWS requests', type=int)
     parser.add_argument('--logfile',default='output.csv',help='Path to save the status log in csv format')
     parser.add_argument('--retry_once',action="store_true",default=False,help='Optionally retried failed files one more time')
+    parser.add_argument('--profile',default='',help='Passes a profile to AWS for credentials')
     args = parser.parse_args()
 
     bulk_restore(args.bucket,args.prefix,args.is_logfile,args.filter_in,args.filter_out,
-                 args.tier,args.max_workers,args.logfile,args.retry_once)
+                 args.tier,args.max_workers,args.logfile,args.retry_once,args.profile)
